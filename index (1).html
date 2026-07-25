@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0E141A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="country-hills-logo.png">
+<title>Crew Board · Country Hills Golf Club</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%230E141A'/%3E%3Cpath%20d='M12%2027V5l11%204.5L12%2014'%20fill='none'%20stroke='%236FAE6A'%20stroke-width='2.6'%20stroke-linejoin='round'%20stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --night:#0E141A; --panel:#151D25; --stripe:#1A232C; --line:#28333E; --line2:#354351;
+    --chalk:#E7EEF3; --mute:#7C8E9C; --dim:#66747F;
+    --turf:#6FAE6A; --sand:#DDB268; --out:#E4674C; --pm:#63B8D4;
+    --display:"Barlow Condensed","Arial Narrow",sans-serif;
+    --body:"IBM Plex Sans",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --gutter:180px;
+    --cols:minmax(0,1.1fr) minmax(0,1fr);
+  }
+  body.phase-pm{--cols:minmax(0,1.1fr) minmax(0,.9fr) minmax(0,.9fr)}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  html.light{
+    --night:#F2EFE7; --panel:#FCFBF7; --stripe:#EAE6DA; --line:#D8D2C2; --line2:#B9B09A;
+    --chalk:#20262B; --mute:#5B6873; --dim:#77828C;
+    --turf:#39763C; --sand:#8F6B14; --out:#BE3E22; --pm:#136F96;
+    color-scheme:light;
+  }
+  html.light .tabs button[aria-selected=true]{color:#fff}
+  html.light .crewbtn[data-on="1"]{color:#fff}
+  html.light .pills button[data-on="1"]{color:#fff}
+  html.light .datenav input[type=date]{color-scheme:light}
+  html.light .pmcell input.txt::placeholder{color:rgba(19,111,150,.5)}
+  html.light .pickpanel,html.light .menu{box-shadow:0 18px 44px rgba(60,50,25,.22)}
+  body{background:var(--night);color:var(--chalk);font-family:var(--body);font-size:15px;-webkit-font-smoothing:antialiased}
+  button,select,input,textarea{font-family:inherit;font-size:inherit;color:inherit}
+  button{cursor:pointer}
+  :focus-visible{outline:2px solid var(--sand);outline-offset:2px}
+  .eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
+  .bar{display:flex;align-items:center;gap:15px;flex-wrap:wrap;padding:11px 22px;background:var(--panel);
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.13em;text-transform:uppercase;line-height:1;white-space:nowrap}
+  .logo{height:34px;width:auto;display:block}
+  .tvbar .logo{height:32px;align-self:center}
+  .brand em{font-style:normal;color:var(--turf)}
+  .brand small{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;color:var(--dim);margin-top:3px;font-weight:400}
+  .vr{width:1px;height:30px;background:var(--line)}
+  .datenav{display:flex;align-items:center;gap:4px}
+  .datenav input[type=date]{background:var(--night);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-family:var(--mono);font-size:12.5px;color-scheme:dark}
+  .icb{background:none;border:1px solid transparent;border-radius:4px;color:var(--mute);padding:4px 9px;font-size:17px;line-height:1}
+  .icb:hover{color:var(--chalk);border-color:var(--line)}
+  .crews{display:flex;align-items:center;gap:5px}
+  .crewbtn{font-family:var(--mono);font-size:11px;border:1px solid var(--line);background:var(--night);color:var(--dim);border-radius:4px;padding:5px 10px}
+  .crewbtn[data-on="1"]{background:var(--turf);border-color:var(--turf);color:#0B1116;font-weight:600}
+  .headcount{font-family:var(--mono);font-size:11px;color:var(--mute);letter-spacing:.04em;white-space:nowrap}
+  .headcount b{color:var(--chalk);font-weight:600}
+  .spacer{flex:1}
+  .tabs{display:flex;gap:2px;background:var(--night);border:1px solid var(--line);border-radius:5px;padding:2px}
+  .tabs button{background:none;border:0;padding:5px 13px;border-radius:3px;font-family:var(--display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+  .tabs button[aria-selected=true]{background:var(--chalk);color:#0B1116;font-weight:600}
+  .btn{background:var(--night);border:1px solid var(--line);border-radius:4px;padding:6px 12px;font-size:13px}
+  .btn:hover{border-color:var(--line2)}
+  .btn.key{border-color:var(--sand);color:var(--sand)}
+  .btn.go{border-color:var(--turf);color:var(--turf)}
+  .syncpill{display:flex;align-items:center;gap:7px;background:none;border:1px solid var(--line);border-radius:99px;
+    padding:5px 12px;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+  .syncpill:hover{border-color:var(--line2);color:var(--mute)}
+  .syncpill i{width:7px;height:7px;border-radius:50%;background:var(--dim);display:block}
+  .syncpill.live i{background:var(--turf);box-shadow:0 0 7px rgba(111,174,106,.7)}
+  .syncpill.live{color:var(--turf);border-color:rgba(111,174,106,.4)}
+  .syncpill.bad i{background:var(--out)} .syncpill.bad{color:var(--out);border-color:rgba(228,103,76,.4)}
+  .sql{font-family:var(--mono);font-size:11.5px;line-height:1.65;background:var(--night);border:1px solid var(--line);
+    border-radius:6px;padding:12px 14px;overflow:auto;white-space:pre;color:var(--mute);margin:0 0 12px}
+
+  /* phase strip */
+  .ribbon{display:flex;align-items:center;gap:18px;min-height:40px;padding:7px 24px;flex-wrap:wrap;
+    background:var(--panel);border-bottom:1px solid var(--line);z-index:10}
+  .ribbon[hidden]{display:none}
+  .phaseinfo{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--dim);flex:1;min-width:220px}
+  .phaseinfo b{font-weight:600;color:var(--mute)}
+  .phaseinfo b.redc{color:var(--out)} .phaseinfo b.pmc{color:var(--pm)}
+  .preview{display:flex;align-items:center;gap:5px;flex:none}
+  .preview span{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-right:2px}
+  .preview button{font-family:var(--mono);font-size:10px;background:var(--night);border:1px solid var(--line);color:var(--dim);border-radius:3px;padding:4px 8px}
+  .preview button[aria-pressed=true]{color:var(--chalk);border-color:var(--line2)}
+
+  /* direction of cut + shared note */
+  .cutbar{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:10px 22px 12px;
+    border-bottom:1px solid var(--line);background:var(--night)}
+  .cuttl{font-family:var(--display);font-size:14px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--sand);align-self:center;margin-right:2px;font-weight:600}
+  .cutf{display:flex;flex-direction:column;gap:3px}
+  .cutf s{text-decoration:none;font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim)}
+  .cutf select{background:var(--panel);border:1px solid var(--line);border-radius:5px;color:var(--chalk);padding:5px 8px;font-size:13px}
+  .cutf.note{flex:1;min-width:220px}
+  .cutf.note input{background:var(--panel);border:1px solid var(--line);border-radius:5px;color:var(--sand);padding:5px 9px;font-size:13px;width:100%}
+  .jobdiv{height:9px;background:#04070A;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+
+  /* board */
+  .courses{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+  .course{background:var(--night);min-width:0}
+  .chead{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;padding:16px 18px 13px;background:var(--panel)}
+  .cname{font-family:var(--display);font-size:36px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;line-height:.9}
+  .cname b{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--turf);font-weight:500;margin-bottom:5px}
+  .field{display:flex;flex-direction:column;gap:3px}
+  .field label{font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+  .field input,.field select{background:var(--night);border:1px solid var(--line);border-radius:4px;padding:5px 8px}
+  .tt{font-family:var(--mono);font-weight:600;color:var(--sand);width:106px}
+  .notes{width:100%;background:var(--night);border:1px solid var(--line);border-radius:4px;padding:6px 9px;resize:vertical;min-height:33px;line-height:1.4}
+
+  .colhead{display:grid;grid-template-columns:var(--gutter) 1fr;border-top:2px solid var(--turf);border-bottom:1px solid var(--line);background:var(--night)}
+  .course[data-course=talons] .colhead{border-top-color:var(--sand)}
+  .course{display:flex;flex-direction:column}
+  .course .job:last-child{flex:1}
+  .course[data-course=talons] .cname b{color:var(--sand)}
+  .colhead>div:first-child{padding:7px 12px 7px 18px}
+  .colrest{display:grid;grid-template-columns:var(--cols);gap:10px;padding:7px 16px}
+  .colhead span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .colhead .pmcell span{color:var(--pm)}
+
+  .job{display:grid;grid-template-columns:var(--gutter) 1fr;border-bottom:1px solid var(--line)}
+  .job:nth-of-type(odd){background:var(--panel)}
+  .job:nth-of-type(even){background:var(--stripe)}
+  .jlabel{padding:10px 14px 10px 18px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:3px;min-width:0}
+  .jlabel b{font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    line-height:1.02;overflow-wrap:anywhere;hyphens:auto}
+  .jlabel s{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;text-decoration:none;overflow-wrap:anywhere}
+  .job.open .jlabel b{color:var(--sand)}
+  .slots{padding:7px 16px 9px;display:flex;flex-direction:column;gap:5px;min-width:0}
+  .slot{display:grid;grid-template-columns:var(--cols);gap:10px;align-items:start;min-width:0}
+  .namecell{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .slot select{width:100%;background:var(--night);border:1px solid var(--line);border-radius:4px;padding:5px 7px;min-width:0}
+  .slot select.empty{color:var(--dim)}
+  .slot select.override{border-color:var(--out)}
+  .slot input.txt{width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line);padding:5px 2px;font-size:13.5px;min-width:0}
+  .slot input.txt::placeholder{color:#4A5862}
+  .slot input.txt:focus{border-bottom-color:var(--line2)}
+  .pmcell{display:none}
+  body.phase-pm .pmcell{display:block}
+  .pmcell input.txt{color:var(--pm);border-bottom-color:rgba(99,184,212,.32)}
+  .pmcell input.txt::placeholder{color:rgba(99,184,212,.42)}
+  .pick{width:100%;text-align:left;background:var(--night);border:1px solid var(--line);border-radius:4px;
+    padding:5px 8px;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pick:hover{border-color:var(--line2)}
+  .pick.empty{color:var(--dim)}
+  .pick.override{border-color:var(--out)}
+  body.phase-half .pick.five{color:var(--out)}
+  .pickpanel{position:fixed;z-index:70;max-width:calc(100vw - 16px);background:var(--panel);border:1px solid var(--line2);border-radius:8px;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);overflow:hidden;display:flex;flex-direction:column;max-height:min(64vh,460px)}
+  .pickpanel .pf{border:0;border-bottom:1px solid var(--line);background:var(--night);padding:11px 13px;font-size:15px;width:100%}
+  .pkbar{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);background:var(--night)}
+  .pkbar span{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);flex:1}
+  .pkbar button{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;background:none;border:1px solid var(--line);
+    color:var(--mute);border-radius:3px;padding:4px 8px}
+  .pkbar button:hover{border-color:var(--line2);color:var(--chalk)}
+  .pklist{overflow:auto;padding:5px}
+  .pkgrp{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);
+    padding:9px 9px 5px}
+  .pkgrp.warn{color:var(--sand)}
+  .pkrow{display:flex;align-items:baseline;gap:9px;width:100%;text-align:left;background:none;border:0;
+    border-radius:5px;padding:7px 9px;font-size:14.5px;color:var(--chalk)}
+  .pkrow:hover,.pkrow.on{background:var(--stripe)}
+  .pkrow.on{outline:1px solid var(--line2)}
+  .pkrow b{font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pkrow .meta{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--dim);white-space:nowrap}
+  .pkrow .meta.never{color:var(--sand)} .pkrow .meta.stale{color:var(--turf)} .pkrow .meta.warn{color:var(--out)}
+  .pkempty{color:var(--dim);font-size:13px;padding:14px 10px}
+  .menu{position:fixed;z-index:70;background:var(--panel);border:1px solid var(--line2);border-radius:8px;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);padding:5px;min-width:190px}
+  .menu button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:5px;padding:9px 11px;font-size:14px}
+  .menu button:hover{background:var(--stripe)}
+  .menu hr{border:0;border-top:1px solid var(--line);margin:5px 0}
+  .printhead{display:none}
+  .flags{display:flex;gap:4px;flex-wrap:wrap}
+  .flag{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid;border-radius:3px;padding:2px 5px;white-space:nowrap}
+  .flag.train{border-color:var(--sand);color:var(--sand)}
+  .flag.dup{border-color:var(--out);color:var(--out)}
+  .flag.gone{border-color:var(--out);color:var(--out);background:rgba(228,103,76,.13)}
+  .flag.cover{border-color:var(--turf);color:var(--turf)}
+  .flag.late{border-color:var(--sand);color:var(--sand)}
+  body.phase-half select.five{color:var(--out)}
+  .addslot{align-self:flex-start;background:none;border:0;color:var(--dim);font-size:12px;padding:3px 0}
+  .addslot:hover{color:var(--turf)}
+
+  /* crew footer */
+  .crewbar{display:grid;grid-template-columns:1.5fr 1.1fr 1fr;gap:26px;padding:16px 22px 30px;border-top:1px solid var(--line)}
+  .crewbar h4{font-family:var(--display);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 9px;font-weight:600}
+  .crewbar h4 em{font-style:normal;color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.06em}
+  .names{display:flex;flex-wrap:wrap;gap:6px}
+  .chipn{display:inline-flex;align-items:center;gap:6px;font-size:13px;border:1px solid var(--line);border-radius:99px;padding:4px 11px;background:var(--panel);color:var(--chalk)}
+  .chipn:hover{border-color:var(--sand)}
+  .chipn em{font-family:var(--mono);font-size:8.5px;font-style:normal;color:var(--dim)}
+  .chipn em.late{color:var(--sand)}
+  .chipn.basic{border-color:var(--turf);color:var(--turf)}
+  .chipn.on{color:var(--mute);background:none;border-style:dashed}
+  .chipn.away{border-color:rgba(228,103,76,.45);color:var(--out)}
+  .chipn.away s{text-decoration:line-through;text-decoration-thickness:1px}
+  .chipn.away em{color:var(--turf)}
+  .empty-note{color:var(--dim);font-size:13px}
+
+  /* modal */
+  .veil{position:fixed;inset:0;background:rgba(6,10,14,.72);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px}
+  .modal{background:var(--panel);border:1px solid var(--line2);border-radius:9px;padding:20px 22px;width:min(430px,100%)}
+  .modal h5{font-family:var(--display);font-size:24px;letter-spacing:.05em;text-transform:uppercase;margin:0 0 3px;font-weight:600}
+  .modal .sub{color:var(--mute);font-size:12.5px;margin:0 0 16px}
+  .modal .opt{display:block;width:100%;text-align:left;background:var(--night);border:1px solid var(--line);border-radius:6px;padding:11px 13px;margin-bottom:8px;font-size:14px}
+  .modal .opt:hover{border-color:var(--line2)}
+  .modal .opt b{display:block;font-size:14px;margin-bottom:2px}
+  .modal .opt span{color:var(--mute);font-size:12px}
+  .modal select{width:100%;background:var(--night);border:1px solid var(--line);border-radius:5px;padding:8px 9px;margin:4px 0 10px}
+  .modal .chk{display:flex;align-items:center;gap:7px;color:var(--mute);font-size:12.5px;margin-bottom:14px}
+  .modal .foot{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+
+  /* panes */
+  .pane{padding:22px 24px 70px;max-width:1280px}
+  .pane h3{font-family:var(--display);font-size:26px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 5px}
+  .pane p.help{color:var(--mute);font-size:13.5px;margin:0 0 18px;max-width:68ch;line-height:1.55}
+  .card{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:17px;margin-bottom:16px}
+  .card h4{font-family:var(--display);font-size:17px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 3px;font-weight:600}
+  .card details{margin-top:10px}
+  .card summary{cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);padding:2px 0;user-select:none}
+  .card summary:hover{color:var(--chalk)}
+  .card details .sql{margin-top:10px}
+  .card p.help{margin-bottom:14px}
+  .banner{border:1px solid var(--sand);border-left-width:3px;border-radius:6px;background:rgba(221,178,104,.06);padding:12px 15px;margin-bottom:18px;font-size:13.5px;line-height:1.55}
+  .banner b{color:var(--sand)}
+  .scroll{overflow:auto;max-height:60vh;border:1px solid var(--line);border-radius:7px}
+  table.grid{border-collapse:collapse;font-size:13px;width:100%}
+  table.grid th,table.grid td{border:1px solid var(--line);padding:5px 8px;text-align:center}
+  table.grid th.name,table.grid td.name{text-align:left;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1}
+  table.grid thead th{font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);vertical-align:bottom;background:var(--panel);position:sticky;top:0;z-index:2}
+  table.grid thead th.name{z-index:3}
+  table.grid tbody tr:hover td{background:var(--stripe)}
+  table.log{border-collapse:collapse;width:100%;font-size:13.5px}
+  table.log th{text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);padding:6px 10px;border-bottom:1px solid var(--line)}
+  table.log td{padding:8px 10px;border-bottom:1px solid var(--line)}
+  table.log tr:hover td{background:var(--stripe)}
+  table.log .d{font-family:var(--mono);font-size:12.5px;color:var(--sand)}
+  input[type=checkbox]{accent-color:var(--turf);width:15px;height:15px}
+  .rowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .rowline input,.rowline select{background:var(--night);border:1px solid var(--line);border-radius:4px;padding:5px 8px;color-scheme:dark}
+  .rowline label{color:var(--mute);font-size:12.5px}
+  .prow{display:grid;grid-template-columns:216px 92px 176px 78px 26px;gap:9px;align-items:center;margin-bottom:6px}
+  .prow input,.prow select{background:var(--night);border:1px solid var(--line);border-radius:4px;padding:5px 8px;width:100%}
+  .dayrow{display:flex;gap:2px}
+  .dayrow button{flex:1;font-family:var(--mono);font-size:10px;border:1px solid var(--line);background:var(--night);color:var(--dim);border-radius:3px;padding:5px 0}
+  .dayrow button[data-on="1"]{background:var(--turf);border-color:var(--turf);color:#0B1116;font-weight:600}
+  .dayrow.off{opacity:.22;pointer-events:none}
+  .del{background:none;border:0;color:var(--dim);font-size:15px;line-height:1}
+  .del:hover{color:var(--out)}
+
+  /* schedule calendar */
+  .calbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .calbar .m{font-family:var(--display);font-size:20px;letter-spacing:.09em;text-transform:uppercase;min-width:180px}
+  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .dowl{font-family:var(--mono);font-size:9px;letter-spacing:.13em;color:var(--dim);text-align:center;padding-bottom:3px}
+  .cell{border:1px solid var(--line);border-radius:5px;background:var(--night);padding:6px;min-height:62px}
+  .cell.blank{border-color:transparent;background:none}
+  .cell.today{border-color:var(--turf)}
+  .cell .dn{font-family:var(--mono);font-size:11px;color:var(--mute);margin-bottom:5px}
+  .cell.today .dn{color:var(--turf);font-weight:600}
+  .pills{display:flex;gap:3px}
+  .pills button{flex:1;font-family:var(--mono);font-size:10px;border:1px solid var(--line);background:none;color:var(--dim);border-radius:3px;padding:3px 0}
+  .pills button[data-on="1"]{background:var(--turf);border-color:var(--turf);color:#0B1116;font-weight:600}
+
+  /* tv */
+  body.tv{--gutter:212px;overflow:hidden}
+  body.tv .courses{transform-origin:top left}
+  body.tv .bar,body.tv .crewbar,body.tv .addslot,body.tv .preview,body.tv .jlabel s{display:none}
+  body.tv .pickpanel,body.tv .menu{display:none}
+  body.tv .tvbar{display:flex}
+  .tvbar{display:none;align-items:baseline;gap:24px;padding:13px 26px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .tvbar .d{font-family:var(--display);font-size:30px;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+  .tvbar .c{font-family:var(--mono);font-size:14px;color:var(--sand);letter-spacing:.11em}
+  .tvbar .clk{margin-left:auto;font-family:var(--mono);font-size:22px;color:var(--turf)}
+  .tvbar .x{background:none;border:1px solid var(--line);border-radius:4px;color:var(--dim);padding:5px 11px;font-size:11px}
+  body.tv .cname{font-size:46px}
+  body.tv .jlabel b{font-size:26px}
+  body.tv .colhead span{font-size:11px}
+  body.tv .slot select,body.tv .slot input.txt,body.tv .pick{border:0;background:none;font-family:var(--display);
+    font-size:26px;letter-spacing:.03em;appearance:none;-webkit-appearance:none;padding:1px 0;pointer-events:none;line-height:1.14}
+  body.tv .slot input.txt{font-size:19px;color:var(--mute);border-bottom:0;font-family:var(--body)}
+  body.tv .pmcell input.txt{color:var(--pm)}
+  body.tv .slot select.empty,body.tv .pick.empty{opacity:.16}
+  body.tv .flag{font-size:10px}
+  body.tv .tt{font-size:26px;border:0;background:none;width:auto;padding:0}
+  body.tv .field select{border:0;background:none;font-family:var(--display);font-size:26px;padding:0;appearance:none;-webkit-appearance:none}
+  body.tv .notes{border:0;font-size:19px;color:var(--sand);padding-left:0}
+  body.tv .cutf select{pointer-events:none;border-color:transparent;background:none;appearance:none;-webkit-appearance:none;
+    font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:.03em;padding:1px 0;color:var(--chalk)}
+  body.tv .cutf.note input{pointer-events:none;border-color:transparent;background:none;font-size:18px;font-weight:600}
+  body.tv .cutf.note:not(:has(.hasval)){display:none}
+  body.tv .cuttl{font-size:17px}
+
+  @media (max-width:1000px){
+    .courses{grid-template-columns:1fr}
+    body.tv{overflow:auto}
+    .crewbar{grid-template-columns:1fr}
+    body{--gutter:120px}
+    .prow{grid-template-columns:1fr}
+    .ribbon{padding:7px 20px}
+    .cutbar{padding:10px 18px 12px}
+  }
+  @media print{
+    body{background:#fff;color:#000;font-size:11px}
+    .bar,.ribbon,.crewbar,.tvbar,.addslot,.preview,.pickpanel,.menu,.pane{display:none!important}
+    .printhead{display:block;padding:0 0 10px;border-bottom:2px solid #000;margin-bottom:10px}
+    .printhead .t{font-family:var(--display);font-size:22px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+    .printhead .s{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:#444;margin-top:3px}
+    .courses{grid-template-columns:1fr 1fr;gap:0;background:#fff}
+    .course,.chead,.job,.colhead{background:#fff!important;border-color:#999!important}
+    .job{border-bottom:1px solid #ccc;break-inside:avoid}
+    .jlabel{border-right:1px solid #ccc}
+    .jlabel b,.cname{color:#000}
+    .cutbar{border:0;border-bottom:1px solid #000;padding:4px 0 8px;background:#fff}
+    .cutbar *{color:#000!important}
+    .cutf select,.cutf.note input{border:0;background:none;appearance:none;-webkit-appearance:none;padding:0}
+    .jobdiv{background:#000!important;height:7px;border:0}
+    .cname b,.jlabel s,.colhead span,.field label{color:#555}
+    .pick,.slot input.txt,.field input,.field select,.notes{border:0!important;background:none!important;color:#000!important;padding:2px 0!important}
+    .pick.empty{color:#bbb!important}
+    .pmcell{display:block!important}
+    .flag{border-color:#666!important;color:#333!important}
+    @page{size:landscape;margin:12mm}
+  }
+  @media (pointer:coarse){
+    body.tv{overflow:auto}
+    .pick{min-height:38px}
+    .pkrow{padding:10px 10px}
+    .chipn{padding:7px 13px;font-size:13.5px}
+    .icb{width:34px;height:34px}
+    .cutf select{min-height:36px}
+    .modal .opt{padding:14px 15px}
+    .addslot{padding:7px 0}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="brand"><img class="logo" src="country-hills-logo.png" alt="" onerror="this.remove()">
+    <div>Country <em>Hills</em><small>Golf Club · Crew Board</small></div></div>
+  <div class="vr"></div>
+  <div class="datenav">
+    <button class="icb" id="prevDay" title="Previous day">‹</button>
+    <input type="date" id="dateInput">
+    <button class="icb" id="nextDay" title="Next day">›</button>
+    <button class="btn" id="todayBtn" style="padding:5px 10px;font-size:12px">Today</button>
+  </div>
+  <div class="vr"></div>
+  <div class="crews" id="crewToggles"></div>
+  <div class="headcount" id="headcount"></div>
+  <div class="spacer"></div>
+  <button class="syncpill" id="syncPill" title="Where this board is saved"></button>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-view="board" aria-selected="true">Board</button>
+    <button role="tab" data-view="history" aria-selected="false">History</button>
+    <button role="tab" data-view="training" aria-selected="false">Training</button>
+    <button role="tab" data-view="setup" aria-selected="false">Setup</button>
+  </div>
+  <button class="btn" id="moreBtn" title="More actions">•••</button>
+  <button class="btn key" id="tvBtn">TV view</button>
+</div>
+
+<div class="tvbar">
+  <img class="logo" src="country-hills-logo.png" alt="" onerror="this.remove()">
+  <div class="d" id="tvDate"></div><div class="c" id="tvCrew"></div>
+  <div class="clk" id="tvClock"></div><button class="x" id="tvExit">Exit (Esc)</button>
+</div>
+
+<div class="ribbon" id="ribbon"></div>
+
+<div id="viewBoard">
+  <div class="printhead" id="printHead"></div>
+  <div class="cutbar" id="cutbar"></div>
+  <div class="courses" id="courses"></div>
+  <div class="crewbar">
+    <div><h4>In today, not on the board</h4><div class="names" id="benchNames"></div></div>
+    <div><h4>On the board <em>click to swap or call in</em></h4><div class="names" id="onNames"></div></div>
+    <div><h4>Away &amp; covered</h4><div class="names" id="awayNames"></div></div>
+  </div>
+</div>
+
+<div id="viewHistory" class="pane" hidden></div>
+<div id="viewTraining" class="pane" hidden></div>
+<div id="viewSetup" class="pane" hidden></div>
+<div id="modalRoot"></div>
+
+<script>
+/* theme is a per-computer preference — plain localStorage, never part of the shared board */
+try{ if(localStorage.getItem("chgc-theme")==="light"){
+  document.documentElement.classList.add("light");
+  const mc=document.querySelector('meta[name=color-scheme]'); if(mc) mc.content="light";
+  const tc=document.querySelector('meta[name=theme-color]'); if(tc) tc.content="#F2EFE7";
+} }catch(e){}
+
+/* ══ storage: artifact (window.storage) → saved file (localStorage) → memory ══ */
+const mem={};
+const store={
+  async get(k){
+    if(window.storage){ try{ const r=await window.storage.get(k); return r?r.value:null; }catch(e){ return null; } }
+    try{ return localStorage.getItem(k); }catch(e){ return mem[k]??null; }
+  },
+  async set(k,v){
+    if(window.storage){ try{ await window.storage.set(k,v); return; }catch(e){} }
+    try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; }
+  }
+};
+
+/* ══ crew schedule, read straight off the 2026 summer workbook ══ */
+const SCHED={
+"2026-05-01":"12","2026-05-02":"23","2026-05-03":"23","2026-05-04":"123","2026-05-05":"13",
+"2026-05-06":"12","2026-05-07":"12","2026-05-08":"23","2026-05-09":"13","2026-05-10":"13",
+"2026-05-11":"123","2026-05-12":"12","2026-05-13":"23","2026-05-14":"23","2026-05-15":"13",
+"2026-05-16":"12","2026-05-17":"12","2026-05-18":"13","2026-05-19":"123","2026-05-20":"23",
+"2026-05-21":"13","2026-05-22":"12","2026-05-23":"23","2026-05-24":"23","2026-05-25":"123",
+"2026-05-26":"13","2026-05-27":"12","2026-05-28":"12","2026-05-29":"23","2026-05-30":"13",
+"2026-05-31":"13","2026-06-01":"123","2026-06-02":"12","2026-06-03":"23","2026-06-04":"23",
+"2026-06-05":"13","2026-06-06":"12","2026-06-07":"12","2026-06-08":"123","2026-06-09":"23",
+"2026-06-10":"13","2026-06-11":"13","2026-06-12":"12","2026-06-13":"23","2026-06-14":"23",
+"2026-06-15":"123","2026-06-16":"13","2026-06-17":"12","2026-06-18":"12","2026-06-19":"23",
+"2026-06-20":"13","2026-06-21":"13","2026-06-22":"123","2026-06-23":"12","2026-06-24":"23",
+"2026-06-25":"23","2026-06-26":"13","2026-06-27":"12","2026-06-28":"12","2026-06-29":"123",
+"2026-06-30":"23","2026-07-01":"13","2026-07-02":"13","2026-07-03":"12","2026-07-04":"23",
+"2026-07-05":"23","2026-07-06":"123","2026-07-07":"13","2026-07-08":"12","2026-07-09":"12",
+"2026-07-10":"23","2026-07-11":"13","2026-07-12":"13","2026-07-13":"123","2026-07-14":"12",
+"2026-07-15":"23","2026-07-16":"23","2026-07-17":"13","2026-07-18":"12","2026-07-19":"12",
+"2026-07-20":"123","2026-07-21":"23","2026-07-22":"13","2026-07-23":"13","2026-07-24":"12",
+"2026-07-25":"23","2026-07-26":"23","2026-07-27":"123","2026-07-28":"13","2026-07-29":"12",
+"2026-07-30":"12","2026-07-31":"23","2026-08-01":"13","2026-08-02":"13","2026-08-03":"13",
+"2026-08-04":"12","2026-08-05":"23","2026-08-06":"23","2026-08-07":"13","2026-08-08":"12",
+"2026-08-09":"12","2026-08-10":"123","2026-08-11":"23","2026-08-12":"13","2026-08-13":"13",
+"2026-08-14":"12","2026-08-15":"23","2026-08-16":"23","2026-08-17":"123","2026-08-18":"13",
+"2026-08-19":"12","2026-08-20":"12","2026-08-21":"23","2026-08-22":"13","2026-08-23":"13",
+"2026-08-24":"123","2026-08-25":"12","2026-08-26":"23","2026-08-27":"23","2026-08-28":"13",
+"2026-08-29":"12","2026-08-30":"12","2026-08-31":"123"};
+
+const CREW={"1":[],"2":[],"3":[]};  /* hosted copy: the crew list lives in the shared project, not in this file */
+const OFFCREW=[];
+
+const MACHINES=["Tees & Pins","Greens Triplex","Greens Walk","Roller","Collars/Approach","Fairway 3100",
+  "Tee Mower","Rough 3500","Rough 4500","Primary Mower","Bunker Rake","Blower","Sprayer","Irrigation","Hort",
+  "Push Mower","Tractor/Utility"];
+/* jobs every new hire can do on day one — managers can change the list on the Training tab */
+const BASICS=["Tees & Pins","Bunker Rake","Blower","Push Mower"];
+/* the top section runs on both courses every day; below the divider each course has its own rows */
+const TOP=[
+  {label:"Tees & Pins",req:"Tees & Pins",slots:2},
+  {label:"Mow Greens",req:"Greens Triplex",slots:4},
+  {label:"Roll Greens",req:"Roller",slots:2},
+  {label:"Mow Fairways",req:"Fairway 3100",slots:3},
+  {label:"Mow Tees",req:"Tee Mower",slots:2},
+  {label:"Primary",req:"Primary Mower",slots:1}];
+function freshJobs(){
+  const mk=j=>({id:uid(),type:"fixed",...j}), div=()=>({id:uid(),type:"divider",label:"",req:null,slots:0});
+  const talons=TOP.map(mk); talons.splice(3,0,mk({label:"Collars / Fallaways",req:"Collars/Approach",slots:3}));
+  talons.push(div(),mk({label:"Rough 3500",req:"Rough 3500",slots:3}),
+    mk({label:"Bunkers",req:"Bunker Rake",slots:6}),{id:uid(),type:"open",label:"Other",req:null,slots:3});
+  const ridge=TOP.map(mk);
+  ridge.push(div(),mk({label:"Rough 4500",req:"Rough 4500",slots:3}),
+    mk({label:'Rough 3"',req:null,slots:2}),{id:uid(),type:"open",label:"Other",req:null,slots:8});
+  return {talons,ridge};
+}
+const SUPS=[];
+const DN=["S","M","T","W","T","F","S"], DF=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+const pad=n=>String(n).padStart(2,"0");
+/* Everything runs on Calgary time regardless of what the PC's clock says. */
+const MTZ="America/Edmonton";
+let mtFmt=null;
+function mtParts(d){
+  try{
+    if(!mtFmt) mtFmt=new Intl.DateTimeFormat("en-CA",{timeZone:MTZ,hour12:false,
+      year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const o={}; mtFmt.formatToParts(d||new Date()).forEach(x=>{ if(x.type!=="literal") o[x.type]=x.value; });
+    return {y:+o.year,m:+o.month,d:+o.day,h:(+o.hour)%24,mi:+o.minute};
+  }catch(e){
+    const n=d||new Date();
+    return {y:n.getFullYear(),m:n.getMonth()+1,d:n.getDate(),h:n.getHours(),mi:n.getMinutes()};
+  }
+}
+function todayKey(){ const p=mtParts(); return p.y+"-"+pad(p.m)+"-"+pad(p.d); }
+
+let state=null, view="board", dateKey=todayKey(), preview="live", calMonth=null, logPerson="";
+let logQ="", trainQ="", trainCrew="", setupQ="", setupCrew="", statSort="name";
+
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const dow=k=>new Date(k+"T00:00:00").getDay();
+const byName=(a,b)=>a.name.localeCompare(b.name);
+const crewMatch=(p,c)=>!c||(c==="none"?!p.crew:p.crew===c);
+function crewOpts(cur){
+  const cnt=c=>state.people.filter(p=>c==="none"?!p.crew:p.crew===c).length;
+  return `<option value="">All crews</option>`+["1","2","3"].map(c=>
+    `<option value="${c}" ${cur===c?"selected":""}>Crew ${c} · ${cnt(c)}</option>`).join("")+
+    `<option value="none" ${cur==="none"?"selected":""}>No crew · ${cnt("none")}</option>`;
+}
+function refocus(sel,pos){ const f=document.querySelector(sel);
+  if(f){ f.focus(); const n=pos==null?f.value.length:pos; try{ f.setSelectionRange(n,n); }catch(e){} } }
+const onEnter=(inp,btn)=>{ if(inp&&btn) inp.onkeydown=e=>{ if(e.key==="Enter") btn.click(); }; };
+
+function freshState(){
+  const s={schemaV:4,machines:MACHINES.slice(),basics:BASICS.slice(),people:[],supervisors:SUPS.slice(),
+    training:{},trainingIsSample:true,
+    schedule:Object.fromEntries(Object.entries(SCHED).map(([k,v])=>[k,v.split("")])),
+    times:{start:"05:30",half:"09:30",pm:"10:30",end:"14:00"},
+    jobs:freshJobs(),
+    days:{}};
+  ["1","2","3"].forEach(c=>CREW[c].forEach(n=>s.people.push({id:uid(),name:n,crew:c,days:[1,2,3,4,5],hours:8})));
+  OFFCREW.forEach(p=>s.people.push({id:uid(),name:p.name,crew:null,days:p.days,hours:8}));
+  s.people.forEach(p=>{ s.training[p.id]={}; s.machines.forEach(m=>s.training[p.id][m]=true); });
+  return s;
+}
+const defaultCut=()=>({greens:"10 to 4",clean:"clockwise",fairways:"left to right",m3100:"clockwise",primary:"clockwise"});
+const blankDay=()=>({away:{},extra:{},late:{},half:{},note:"",cut:defaultCut(),
+  talons:{supervisor:"",tee:"",notes:"",assign:{}},ridge:{supervisor:"",tee:"",notes:"",assign:{}}});
+function day(k){ k=k||dateKey; if(!state.days[k]) state.days[k]=blankDay();
+  const d=state.days[k]; d.late=d.late||{}; d.half=d.half||{}; d.note=d.note??""; d.cut=d.cut||defaultCut(); return d; }
+const person=id=>state.people.find(p=>p.id===id);
+/* red-name rules: permanently 5-hour, or an 8-hour person taking a half day just today */
+const isHalfToday=pid=>{ const p=person(pid); return !!p&&(p.hours===5||!!(day().half||{})[pid]); };
+
+/* ══ who's in ══ */
+const crewsOn=k=>state.schedule[k||dateKey]||[];
+function scheduledToday(k){
+  k=k||dateKey;
+  const on=crewsOn(k), wd=dow(k), d=day(k), seen=new Set(), out=[];
+  const push=p=>{ if(p&&!seen.has(p.id)){ seen.add(p.id); out.push(p); } };
+  state.people.forEach(p=>{ if(p.crew?on.includes(p.crew):(p.days||[]).includes(wd)) push(p); });
+  Object.keys(d.extra||{}).forEach(id=>push(person(id)));
+  Object.values(d.away||{}).forEach(a=>{ if(a.by) push(person(a.by)); });
+  return out;
+}
+function rosterToday(k){ k=k||dateKey; const a=day(k).away||{}; return scheduledToday(k).filter(p=>!a[p.id]).sort(byName); }
+const isTrained=(pid,m)=>!m||!!(state.training[pid]&&state.training[pid][m]);
+
+function assignedElsewhere(pid,exceptKey){
+  const d=day(),hits=[];
+  for(const c of ["talons","ridge"]) for(const j of state.jobs[c])
+    (d[c].assign[j.id]||[]).forEach((s,i)=>{ if(s&&s.p===pid&&`${c}|${j.id}|${i}`!==exceptKey) hits.push(j.label); });
+  return hits;
+}
+function reassign(fromId,toId){
+  const d=day();
+  for(const c of ["talons","ridge"]) for(const j of state.jobs[c])
+    (d[c].assign[j.id]||[]).forEach(s=>{ if(s&&s.p===fromId) s.p=toId; });
+}
+
+/* ══ clock ══ */
+function toMin(v){
+  if(!v) return null;
+  const s=String(v).trim().toUpperCase();
+  const ap=/P\.?M/.test(s)?"PM":/A\.?M/.test(s)?"AM":null;
+  const dg=s.replace(/[^0-9:]/g,""); if(!dg) return null;
+  let h,m;
+  if(dg.includes(":")){ const p=dg.split(":"); h=+p[0]; m=+(p[1]||0); }
+  else if(dg.length<=2){ h=+dg; m=0; }
+  else { h=+dg.slice(0,dg.length-2); m=+dg.slice(-2); }
+  if(isNaN(h)||isNaN(m)) return null;
+  if(ap==="PM"&&h<12) h+=12;
+  if(ap==="AM"&&h===12) h=0;
+  if(!ap&&h<5) h+=12;
+  return h*60+m;
+}
+function fmt(min){ let h=Math.floor(min/60),m=min%60,ap=h>=12?"PM":"AM"; h%=12; if(!h)h=12; return h+":"+pad(m)+" "+ap; }
+const nowMin=()=>{ const p=mtParts(); return p.h*60+p.mi; };
+function phase(){
+  if(preview!=="live") return preview;
+  if(dateKey!==todayKey()) return "am";
+  const n=nowMin(),h=toMin(state.times.half),p=toMin(state.times.pm);
+  if(p!==null&&n>=p) return "pm";
+  if(h!==null&&n>=h) return "half";
+  return "am";
+}
+function applyPhase(){
+  const ph=phase();
+  document.body.classList.toggle("phase-half",ph==="half"||ph==="pm");
+  document.body.classList.toggle("phase-pm",ph==="pm");
+}
+
+/* ══ phase strip ══ */
+function renderRibbon(){
+  document.getElementById("ribbon").innerHTML=`
+    <div class="phaseinfo" id="phaseInfo"></div>
+    <div class="preview"><span>Show board as</span>
+      ${[["live","Live","Follow the real clock"],
+         ["am","Morning","How the board looks before "+fmt(toMin(state.times.half))],
+         ["half","After "+state.times.half.replace(/^0/,""),"Half-shift names turn red"],
+         ["pm","PM jobs","The afternoon job column appears"]].map(([k,l,t])=>
+        `<button data-pv="${k}" aria-pressed="${preview===k}" title="${esc(t)}">${esc(l)}</button>`).join("")}
+    </div>`;
+  phaseInfo();
+  document.querySelectorAll("[data-pv]").forEach(b=>b.onclick=()=>{ preview=b.dataset.pv; applyPhase(); renderRibbon(); });
+}
+function phaseInfo(){
+  const el=document.getElementById("phaseInfo"); if(!el||!state) return;
+  const half=fmt(toMin(state.times.half)), pm=fmt(toMin(state.times.pm)), ph=phase();
+  el.innerHTML = ph==="pm" ? `<b class="pmc">PM jobs are on</b> — the 5-hour crew is done for the day`
+    : ph==="half" ? `<b class="redc">The 5-hour crew leaves at lunch</b> — names in red · PM jobs open at ${pm}`
+    : `5-hour names turn red at ${half} · PM jobs open at ${pm}`;
+}
+
+/* ══ direction of cut + shared note ══ */
+const CUTS={greens:["10 to 4","2 to 8","12 to 6"],clean:["clockwise","counter clockwise"],
+  fairways:["left to right","right to left"],m3100:["clockwise","counter clockwise"],
+  primary:["clockwise","counter clockwise"]};
+const CUTLABEL={greens:"Greens",clean:"Cleanups",fairways:"Fairways",m3100:"3100",primary:"Primary"};
+function renderCut(){
+  const el=document.getElementById("cutbar"); if(!el) return;
+  const d=day();
+  el.innerHTML=`<span class="cuttl">Direction of cut</span>`
+    +Object.keys(CUTS).map(k=>`<label class="cutf"><s>${CUTLABEL[k]}</s>
+      <select data-cut="${k}">${CUTS[k].map(o=>`<option ${d.cut[k]===o?"selected":""}>${esc(o)}</option>`).join("")}</select></label>`).join("")
+    +`<label class="cutf note"><s>Note for everyone</s>
+      <input type="text" id="dayNote" class="${d.note?"hasval":""}" value="${esc(d.note||"")}"
+        placeholder="Tournament Monday, smoke advisory…"></label>`;
+  el.querySelectorAll("[data-cut]").forEach(sl=>sl.onchange=()=>{ day().cut[sl.dataset.cut]=sl.value; save(); });
+  const dn=el.querySelector("#dayNote");
+  dn.oninput=()=>{ day().note=dn.value; dn.classList.toggle("hasval",!!dn.value); save(); };
+}
+
+/* ══ board ══ */
+const COURSE={talons:"The Talons",ridge:"The Ridge"};
+
+function renderBoard(){
+  const d=day(), roster=rosterToday();
+  document.getElementById("courses").innerHTML=["talons","ridge"].map(c=>courseHTML(c,d,roster)).join("");
+
+  const used=new Set();
+  ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>
+    (d[c].assign[j.id]||[]).forEach(s=>{ if(s&&s.p) used.add(s.p); })));
+  const bench=roster.filter(p=>!used.has(p.id)), onb=roster.filter(p=>used.has(p.id));
+
+  document.getElementById("benchNames").innerHTML = bench.length
+    ? bench.map(p=>chip(p,"")).join("") : `<span class="empty-note">Everyone in today is on the board.</span>`;
+  document.getElementById("onNames").innerHTML = onb.length
+    ? onb.map(p=>chip(p,"on")).join("") : `<span class="empty-note">Nobody assigned yet.</span>`;
+
+  const away=Object.entries(d.away||{});
+  document.getElementById("awayNames").innerHTML = away.length
+    ? away.map(([id,a])=>{ const p=person(id); if(!p) return "";
+        const by=a.by?person(a.by):null;
+        return `<button class="chipn away" data-who="${id}" title="Click to undo">
+          <s>${esc(p.name)}</s>${by?`<em>← ${esc(by.name)}</em>`:`<em>${a.type==="covered"?"COVERED":"CALLED IN"}</em>`}</button>`;
+      }).join("")
+    : `<span class="empty-note">Nobody away. Click any name to mark a call-in or a shift swap, even on a future date.</span>`;
+
+  renderCut(); wireBoard(); applyPhase(); fitTV(); buildPrintHead();
+}
+const chip=(p,cls)=>`<button class="chipn ${cls}" data-who="${p.id}">${esc(p.name)}${p.hours===5?`<em>5H</em>`:(day().half||{})[p.id]?`<em class="late">½ DAY</em>`:""}${(day().late||{})[p.id]?`<em class="late">LATE</em>`:""}</button>`;
+
+function courseHTML(c,d,roster){
+  const cd=d[c];
+  return `<div class="course" data-course="${c}">
+    <div class="chead">
+      <div class="cname"><b>Course</b>${COURSE[c]}</div>
+      <div class="field"><label>First tee</label>
+        <input class="tt" data-c="${c}" data-f="tee" value="${esc(cd.tee)}" placeholder="7:03 AM"></div>
+      <div class="field"><label>Supervisor</label>
+        <select data-c="${c}" data-f="supervisor"><option value="">—</option>
+          ${state.supervisors.map(s=>`<option ${cd.supervisor===s?"selected":""}>${esc(s)}</option>`).join("")}</select></div>
+      <div class="field" style="flex:1;min-width:190px"><label>Notes for the crew</label>
+        <textarea class="notes" data-c="${c}" data-f="notes" rows="1"
+          placeholder="Frost delay, tournament, cart path only…">${esc(cd.notes)}</textarea></div>
+    </div>
+    <div class="colhead"><div><span>Job</span></div>
+      <div class="colrest"><span>Name</span><span>Second job</span><div class="pmcell"><span>PM job</span></div></div></div>
+    ${state.jobs[c].map(j=>jobHTML(c,j,cd,roster)).join("")}</div>`;
+}
+function jobHTML(c,job,cd,roster){
+  if(job.type==="divider") return `<div class="jobdiv"></div>`;
+  const arr=cd.assign[job.id]||[], n=Math.max(job.slots,arr.length);
+  let rows=""; for(let i=0;i<n;i++) rows+=slotHTML(c,job,i,arr[i]||{p:"",note:"",pm:""},roster);
+  return `<div class="job ${job.type==="open"?"open":""}">
+    <div class="jlabel"><b>${esc(job.label)}</b>${job.req?`<s>${esc(job.req)}</s>`:""}</div>
+    <div class="slots">${rows}<button class="addslot" data-add="${c}|${job.id}">+ another person</button></div></div>`;
+}
+function slotHTML(c,job,i,s,roster){
+  const key=`${c}|${job.id}|${i}`, d=day(), pick=s.p, pk=pick?person(pick):null;
+  const override=pick&&!isTrained(pick,job.req), dup=pick?assignedElsewhere(pick,key):[];
+  const aw=pick?(d.away||{})[pick]:null, half=pick&&isHalfToday(pick), late=pick&&(d.late||{})[pick];
+  const flags=[
+    late?`<span class="flag late">Late</span>`:"",
+    override?`<span class="flag train">Training</span>`:"",
+    dup.length?`<span class="flag dup">Double-booked</span>`:"",
+    aw?(aw.by?`<span class="flag cover">Covered by ${esc((person(aw.by)||{}).name||"")}</span>`:`<span class="flag gone">Called in</span>`):""].join("");
+  return `<div class="slot">
+    <div class="namecell">
+      <button class="pick ${pick?"":"empty"} ${override?"override":""} ${half?"five":""}"
+        data-pick="${key}" title="${pick?"Click to change":"Click to assign"}">${esc(pk?pk.name:"—")}</button>
+      ${flags?`<div class="flags">${flags}</div>`:""}</div>
+    <div><input class="txt" data-note="${key}" value="${esc(s.note||"")}"
+      placeholder="${job.type==="open"?"what needs doing…":"second job…"}"></div>
+    <div class="pmcell"><input class="txt" data-pm="${key}" value="${esc(s.pm||"")}"
+      placeholder="${half?"—":"PM job…"}" ${half?"disabled":""}></div></div>`;
+}
+function setSlot(key,patch){
+  const [c,jid,i]=key.split("|"), cd=day()[c];
+  cd.assign[jid]=cd.assign[jid]||[];
+  cd.assign[jid][+i]=Object.assign({p:"",note:"",pm:""},cd.assign[jid][+i],patch);
+}
+function wireBoard(){
+  document.querySelectorAll("[data-f]").forEach(el=>el.oninput=()=>{
+    day()[el.dataset.c][el.dataset.f]=el.value; save(); });
+  document.querySelectorAll("[data-pick]").forEach(el=>el.onclick=()=>openPicker(el));
+  document.querySelectorAll("[data-note]").forEach(el=>el.oninput=()=>{ setSlot(el.dataset.note,{note:el.value}); save(); });
+  document.querySelectorAll("[data-pm]").forEach(el=>el.oninput=()=>{ setSlot(el.dataset.pm,{pm:el.value}); save(); });
+  document.querySelectorAll("[data-add]").forEach(el=>el.onclick=()=>{
+    const [c,jid]=el.dataset.add.split("|"), job=state.jobs[c].find(j=>j.id===jid), cd=day()[c];
+    cd.assign[jid]=cd.assign[jid]||[];
+    while(cd.assign[jid].length<job.slots) cd.assign[jid].push({p:"",note:"",pm:""});
+    cd.assign[jid].push({p:"",note:"",pm:""}); save(); renderBoard(); });
+  document.querySelectorAll("[data-who]").forEach(b=>b.onclick=()=>openWho(b.dataset.who));
+}
+
+/* ══ name picker ══
+   Type to filter, arrow keys + Enter to pick. Shows how long since each
+   person last did this job, so the same few names don't get it every day. */
+let pickSort="az", pickOpen=null;
+
+function sinceMap(label){
+  const m={};
+  Object.keys(state.days).forEach(k=>{
+    if(k>=dateKey) return;
+    const d=state.days[k];
+    ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>{
+      if(j.label!==label) return;
+      (d[c].assign[j.id]||[]).forEach(sl=>{ if(sl&&sl.p&&(!m[sl.p]||k>m[sl.p])) m[sl.p]=k; });
+    }));
+  });
+  return m;
+}
+const daysBetween=(a,b)=>Math.round((new Date(a+"T00:00:00")-new Date(b+"T00:00:00"))/86400000);
+function matches(name,q){
+  if(!q) return true;
+  const n=name.toLowerCase(), t=q.toLowerCase().trim();
+  if(!t) return true;
+  return t.split(/\s+/).every(w=>n.split(/\s+/).some(part=>part.startsWith(w))||n.includes(w));
+}
+function closePicker(){ pickOpen=null; const p=document.getElementById("pickPanel"); if(p) p.remove(); }
+
+function openPicker(btn){
+  closePicker();
+  const key=btn.dataset.pick, [c,jid,i]=key.split("|");
+  const job=state.jobs[c].find(j=>j.id===jid); if(!job) return;
+  const cur=((day()[c].assign[jid]||[])[+i]||{}).p||"";
+  const since=sinceMap(job.label), roster=rosterToday();
+  pickOpen={key,job,c,i:+i,cur,since,roster,q:"",idx:0};
+
+  const panel=document.createElement("div");
+  panel.className="pickpanel"; panel.id="pickPanel";
+  document.body.appendChild(panel);
+  const r=btn.getBoundingClientRect();
+  const w=Math.max(288,Math.min(360,r.width+120));
+  panel.style.width=w+"px";
+  panel.style.left=Math.max(8,Math.min(window.innerWidth-w-8,r.left))+"px";
+  const below=window.innerHeight-r.bottom;
+  if(below>250) panel.style.top=(r.bottom+4)+"px";
+  else { panel.style.bottom=(window.innerHeight-r.top+4)+"px"; panel.style.maxHeight=Math.max(200,r.top-16)+"px"; }
+  drawPicker();
+  const f=panel.querySelector(".pf"); if(f) f.focus();
+}
+
+function pickCandidates(){
+  const {job,since,roster,q,cur}=pickOpen;
+  const list=roster.filter(p=>matches(p.name,q));
+  const rank=p=>{ const k=since[p.id]; return k?daysBetween(dateKey,k):9999; };
+  const sorter=pickSort==="since"
+    ? (a,b)=>rank(b)-rank(a)||a.name.localeCompare(b.name)
+    : (a,b)=>a.name.localeCompare(b.name);
+  const yes=list.filter(p=>isTrained(p.id,job.req)).sort(sorter);
+  const no=list.filter(p=>!isTrained(p.id,job.req)).sort(sorter);
+  return {yes,no,flat:yes.concat(no)};
+}
+function metaFor(p){
+  const {since,key,job}=pickOpen;
+  const bits=[];
+  const also=assignedElsewhere(p.id,key);
+  if(also.length) bits.push(`<span class="meta warn">on ${esc(also[0])}</span>`);
+  if(p.hours===5) bits.push(`<span class="meta">5H</span>`);
+  const k=since[p.id];
+  if(!k) bits.push(`<span class="meta never">never</span>`);
+  else { const d=daysBetween(dateKey,k); bits.push(`<span class="meta ${d>=14?"stale":""}">${d}d</span>`); }
+  return bits.join("");
+}
+function drawPicker(){
+  const panel=document.getElementById("pickPanel"); if(!panel||!pickOpen) return;
+  /* the redraw rebuilds the filter box — keep the cursor where it was or typing comes out backwards */
+  const prev=panel.querySelector(".pf");
+  const caret=prev&&document.activeElement===prev?prev.selectionStart:null;
+  const {yes,no,flat}=pickCandidates(), {job,cur,q}=pickOpen;
+  if(pickOpen.idx>=flat.length) pickOpen.idx=Math.max(0,flat.length-1);
+  const row=(p,n)=>`<button class="pkrow ${n===pickOpen.idx?"on":""} ${cur===p.id?"cur":""}" data-p="${p.id}">
+      <b>${esc(p.name)}</b>${metaFor(p)}</button>`;
+  let n=-1;
+  panel.innerHTML=`
+    <input class="pf" placeholder="Type a name…" value="${esc(q)}">
+    <div class="pkbar"><span>${esc(job.label)}${job.req?" · "+esc(job.req):""}</span>
+      <button data-sort>${pickSort==="az"?"A–Z":"Longest since"}</button>
+      ${cur?`<button data-clear>Clear</button>`:""}</div>
+    <div class="pklist">
+      ${yes.length?`<div class="pkgrp">Signed off</div>${yes.map(p=>row(p,++n)).join("")}`:""}
+      ${no.length?`<div class="pkgrp warn">Not signed off${job.req?" — "+esc(job.req):""}</div>${no.map(p=>row(p,++n)).join("")}`:""}
+      ${!flat.length?`<div class="pkempty">Nobody in today matches that.</div>`:""}
+    </div>`;
+  const f=panel.querySelector(".pf");
+  if(caret!==null){ f.focus(); try{ f.setSelectionRange(caret,caret); }catch(e){} }
+  f.oninput=()=>{ pickOpen.q=f.value; pickOpen.idx=0; drawPicker(); };
+  f.onkeydown=e=>{
+    const {flat}=pickCandidates();
+    if(e.key==="ArrowDown"){ e.preventDefault(); pickOpen.idx=Math.min(flat.length-1,pickOpen.idx+1); drawPicker(); }
+    else if(e.key==="ArrowUp"){ e.preventDefault(); pickOpen.idx=Math.max(0,pickOpen.idx-1); drawPicker(); }
+    else if(e.key==="Enter"){ e.preventDefault(); if(flat[pickOpen.idx]) choose(flat[pickOpen.idx].id); }
+    else if(e.key==="Escape"){ e.preventDefault(); closePicker(); }
+  };
+  const so=panel.querySelector("[data-sort]");
+  if(so) so.onclick=()=>{ pickSort=pickSort==="az"?"since":"az"; drawPicker(); panel.querySelector(".pf").focus(); };
+  const cl=panel.querySelector("[data-clear]");
+  if(cl) cl.onclick=()=>choose("");
+  panel.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>choose(b.dataset.p));
+  const sel=panel.querySelector(".pkrow.on"); if(sel&&sel.scrollIntoView) sel.scrollIntoView({block:"nearest"});
+}
+function choose(id){
+  if(!pickOpen) return;
+  setSlot(pickOpen.key,{p:id});
+  closePicker(); save(); renderBoard();
+}
+
+/* ══ copy a previous day ══ */
+function copyFrom(k){
+  const src=state.days[k]; if(!src) return {moved:0,dropped:0};
+  const d=day(), have=new Set(rosterToday().map(p=>p.id));
+  let moved=0,dropped=0;
+  ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>{
+    const arr=src[c].assign[j.id]||[];
+    if(!arr.length) return;
+    d[c].assign[j.id]=arr.map(sl=>{
+      if(!sl||!sl.p) return {p:"",note:(sl&&sl.note)||"",pm:""};
+      if(have.has(sl.p)){ moved++; return {p:sl.p,note:sl.note||"",pm:""}; }
+      dropped++; return {p:"",note:sl.note||"",pm:""};
+    });
+  }));
+  return {moved,dropped};
+}
+function openCopy(){
+  const keys=Object.keys(state.days).filter(k=>k<dateKey&&countFilled(state.days[k])>0).sort().reverse().slice(0,14);
+  const root=document.getElementById("modalRoot");
+  root.innerHTML=`<div class="veil" id="veil"><div class="modal">
+    <h5>Start from another day</h5>
+    <p class="sub">Copies the jobs across. Anyone not in today is left blank.</p>
+    ${keys.length?keys.map(k=>{
+      const d=state.days[k];
+      return `<button class="opt" data-copy="${k}"><b>${new Date(k+"T00:00:00").toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}</b>
+        <span>${(state.schedule[k]||[]).map(c=>"Crew "+c).join(" + ")||"no crews"} · ${countFilled(d)} on the board</span></button>`;
+    }).join(""):`<p class="sub">No earlier days have anything on them yet.</p>`}
+    <div class="foot"><button class="btn" id="cancel">Close</button></div></div></div>`;
+  const close=()=>root.innerHTML="";
+  document.getElementById("veil").onclick=e=>{ if(e.target.id==="veil") close(); };
+  document.getElementById("cancel").onclick=close;
+  root.querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>{
+    const {moved,dropped}=copyFrom(b.dataset.copy);
+    save(); close(); refresh();
+    alert(`${moved} carried over.${dropped?`\n${dropped} left blank — those people aren't in today.`:""}`);
+  });
+}
+function clearDay(){
+  if(!confirm("Clear the whole board for this day? Call-ins and swaps stay.")) return;
+  const d=day();
+  ["talons","ridge"].forEach(c=>{ d[c].assign={}; d[c].notes=""; });
+  save(); refresh();
+}
+function openMenu(btn){
+  const old=document.getElementById("moreMenu"); if(old){ old.remove(); return; }
+  const m=document.createElement("div");
+  m.className="menu"; m.id="moreMenu";
+  m.innerHTML=`<button data-a="copy">Start from another day…</button>
+    <button data-a="print">Print this day</button>
+    <button data-a="theme">${document.documentElement.classList.contains("light")?"Dark mode":"Light mode"}</button><hr>
+    <button data-a="clear" style="color:var(--out)">Clear this day</button>`;
+  document.body.appendChild(m);
+  const r=btn.getBoundingClientRect();
+  m.style.top=(r.bottom+6)+"px";
+  m.style.left=Math.max(8,Math.min(window.innerWidth-210,r.right-190))+"px";
+  m.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
+    m.remove();
+    if(b.dataset.a==="copy") openCopy();
+    if(b.dataset.a==="print"){ buildPrintHead(); window.print(); }
+    if(b.dataset.a==="theme"){
+      const el=document.documentElement, light=!el.classList.contains("light");
+      el.classList.toggle("light",light);
+      try{ localStorage.setItem("chgc-theme",light?"light":"dark"); }catch(e){}
+      const mc=document.querySelector('meta[name=color-scheme]'); if(mc) mc.content=light?"light":"dark";
+      const tc=document.querySelector('meta[name=theme-color]'); if(tc) tc.content=light?"#F2EFE7":"#0E141A";
+    }
+    if(b.dataset.a==="clear") clearDay();
+  });
+}
+function buildPrintHead(){
+  const el=document.getElementById("printHead"); if(!el) return;
+  const on=crewsOn(), d=day();
+  el.innerHTML=`<div class="t">Country Hills — ${new Date(dateKey+"T00:00:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}</div>
+    <div class="s">${(on.length?on.map(c=>"CREW "+c).join(" + "):"NO CREW SET")} · ${rosterToday().length} IN
+      · TALONS ${esc(d.talons.tee||"—")} · RIDGE ${esc(d.ridge.tee||"—")}</div>`;
+}
+
+/* ══ call-in / cover modal ══ */
+function openWho(id){
+  const p=person(id), d=day(), aw=(d.away||{})[id];
+  const dt=new Date(dateKey+"T00:00:00").toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+  const others=state.people.filter(x=>x.id!==id).sort(byName);
+  const root=document.getElementById("modalRoot");
+  root.innerHTML=`<div class="veil" id="veil"><div class="modal">
+    <h5>${esc(p.name)}</h5><p class="sub">${esc(dt)}</p>
+    ${aw?`<button class="opt" id="undo"><b>Put back in</b><span>Clears the ${aw.type==="covered"?"shift swap":"call-in"} for this day.</span></button>`:`
+      ${p.hours===5?"":`<button class="opt" id="optHalf"><b>${(d.half||{})[id]?"Back to a full day":"Half day today"}</b><span>${(d.half||{})[id]?"They're staying the whole shift after all.":"Name goes red after "+state.times.half.replace(/^0/,"")+" and PM jobs grey out — just for this day."}</span></button>`}
+      <button class="opt" id="optLate"><b>${(d.late||{})[id]?"Remove the late mark":"Mark late"}</b><span>${(d.late||{})[id]?"On time after all — takes it off their stats.":"Goes on their season stats. They stay on the board."}</span></button>
+      <button class="opt" id="optCall"><b>Called in</b><span>Off the board for this day, out of every dropdown.</span></button>
+      <button class="opt" id="optCover"><b>Shift taken by someone else</b><span>Pick who's covering — they get added to the day.</span></button>
+      <div id="coverBox" hidden>
+        <select id="coverWho"><option value="">Who's covering…</option>
+          ${others.map(o=>`<option value="${o.id}">${esc(o.name)}${o.crew?" · Crew "+o.crew:""}</option>`).join("")}</select>
+        <label class="chk"><input type="checkbox" id="giveJobs" checked> Give them the same jobs</label>
+        <div class="foot"><button class="btn" id="cancel2">Cancel</button><button class="btn go" id="saveCover">Save swap</button></div>
+      </div>`}
+    <div class="foot" id="footMain"><button class="btn" id="cancel">Close</button></div>
+  </div></div>`;
+  const close=()=>root.innerHTML="";
+  document.getElementById("veil").onclick=e=>{ if(e.target.id==="veil") close(); };
+  document.getElementById("cancel").onclick=close;
+  const undo=document.getElementById("undo");
+  if(undo) undo.onclick=()=>{ delete d.away[id]; save(); close(); refresh(); };
+  const oh=document.getElementById("optHalf");
+  if(oh) oh.onclick=()=>{ d.half=d.half||{}; if(d.half[id]) delete d.half[id]; else d.half[id]=true; save(); close(); refresh(); };
+  const ol=document.getElementById("optLate");
+  if(ol) ol.onclick=()=>{ d.late=d.late||{}; if(d.late[id]) delete d.late[id]; else d.late[id]=true; save(); close(); refresh(); };
+  const oc=document.getElementById("optCall");
+  if(oc) oc.onclick=()=>{ d.away=d.away||{}; d.away[id]={type:"called-in",by:null}; save(); close(); refresh(); };
+  const ov=document.getElementById("optCover");
+  if(ov) ov.onclick=()=>{
+    document.getElementById("coverBox").hidden=false;
+    document.getElementById("footMain").hidden=true;
+    document.getElementById("coverWho").focus();
+  };
+  const c2=document.getElementById("cancel2"); if(c2) c2.onclick=close;
+  const sc=document.getElementById("saveCover");
+  if(sc) sc.onclick=()=>{
+    const by=document.getElementById("coverWho").value;
+    if(!by){ alert("Pick who's covering the shift."); return; }
+    d.away=d.away||{}; d.away[id]={type:"covered",by};
+    d.extra=d.extra||{}; d.extra[by]=true;
+    if(document.getElementById("giveJobs").checked) reassign(id,by);
+    save(); close(); refresh();
+  };
+}
+
+/* ══ history ══ */
+function renderHistory(){
+  const el=document.getElementById("viewHistory");
+  const keys=Object.keys(state.days).filter(k=>hasContent(state.days[k])).sort().reverse();
+  const rows=keys.slice(0,90).map(k=>{
+    const d=state.days[k], filled=countFilled(d), away=Object.keys(d.away||{}).length;
+    const covered=Object.values(d.away||{}).filter(a=>a.by).length;
+    return `<tr><td class="d">${k}</td>
+      <td>${new Date(k+"T00:00:00").toLocaleDateString(undefined,{weekday:"short"})}</td>
+      <td>${(state.schedule[k]||[]).map(c=>"Crew "+c).join(", ")||"—"}</td>
+      <td>${rosterToday(k).length}</td><td>${filled}</td>
+      <td>${away?`<span style="color:var(--out)">${away-covered} called in</span>${covered?` · ${covered} covered`:""}`:"—"}</td>
+      <td>${esc(d.talons.supervisor||"—")} / ${esc(d.ridge.supervisor||"—")}</td>
+      <td><button class="btn" data-goto="${k}" style="padding:3px 9px;font-size:12px">Open</button></td></tr>`;
+  }).join("");
+
+  const p=logPerson?person(logPerson):null;
+  let hist="";
+  if(p){
+    const out=[];
+    keys.forEach(k=>{
+      const d=state.days[k];
+      ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>
+        (d[c].assign[j.id]||[]).forEach(s=>{ if(s&&s.p===p.id)
+          out.push({k,c,job:j.label,note:s.note||"",pm:s.pm||""}); })));
+      const a=(d.away||{})[p.id];
+      if(a) out.push({k,c:"—",job:a.by?"Shift covered by "+((person(a.by)||{}).name||""):"Called in",note:"",pm:"",away:true});
+    });
+    hist=out.length?`<table class="log"><thead><tr><th>Date</th><th>Course</th><th>Job</th><th>Second job</th><th>PM job</th></tr></thead>
+      <tbody>${out.slice(0,120).map(r=>`<tr><td class="d">${r.k}</td><td>${r.c==="—"?"—":COURSE[r.c]}</td>
+        <td${r.away?' style="color:var(--out)"':""}>${esc(r.job)}</td><td>${esc(r.note)}</td>
+        <td style="color:var(--pm)">${esc(r.pm)}</td></tr>`).join("")}</tbody></table>`
+      : `<p class="help">Nothing on the board for them yet.</p>`;
+  }
+
+  /* season stats — what the managers asked for: lates and call-ins per person */
+  const stats={};
+  state.people.forEach(p=>stats[p.id]={days:0,call:0,late:0,cover:0});
+  Object.keys(state.days).forEach(k=>{
+    const d=state.days[k];
+    const worked=new Set();
+    ["talons","ridge"].forEach(c=>Object.values(d[c].assign||{}).forEach(a=>a.forEach(sl=>{ if(sl&&sl.p) worked.add(sl.p); })));
+    worked.forEach(id=>{ if(stats[id]) stats[id].days++; });
+    Object.entries(d.away||{}).forEach(([id,a])=>{ if(!stats[id]) return; if(a.by) stats[id].cover++; else stats[id].call++; });
+    Object.keys(d.late||{}).forEach(id=>{ if(stats[id]) stats[id].late++; });
+  });
+  const sorted=state.people.slice().sort((a,b)=>{
+    const A=stats[a.id],B=stats[b.id];
+    if(statSort==="late"&&B.late!==A.late) return B.late-A.late;
+    if(statSort==="call"&&B.call!==A.call) return B.call-A.call;
+    if(statSort==="days"&&B.days!==A.days) return B.days-A.days;
+    return byName(a,b); });
+  const statRows=sorted.map(x=>{ const st=stats[x.id];
+    return `<tr><td class="name">${esc(x.name)}</td>
+      <td style="font-family:var(--mono);color:var(--mute)">${x.crew?esc(x.crew):"—"}</td>
+      <td>${st.days}</td>
+      <td${st.late?' style="color:var(--sand)"':""}>${st.late||"—"}</td>
+      <td${st.call?' style="color:var(--out)"':""}>${st.call||"—"}</td>
+      <td>${st.cover||"—"}</td></tr>`; }).join("");
+  const pstat=logPerson&&stats[logPerson]?stats[logPerson]:null;
+
+  const hits=logQ?state.people.filter(x=>matches(x.name,logQ)).sort(byName).slice(0,14):[];
+  el.innerHTML=`<h3>History</h3>
+    <p class="help">Days save on their own as they're filled in. ${keys.length} day${keys.length===1?"":"s"} on record.</p>
+    <div class="card"><h4>Look up a person</h4>
+      <div class="rowline">
+        <input type="text" id="logQ" placeholder="Type a name…" style="width:216px" value="${esc(logQ)}">
+        ${p?`<span class="chipn" style="cursor:default">${esc(p.name)}<button class="del" id="logClear" style="font-size:12px" title="Clear">✕</button></span>`:""}
+      </div>
+      ${logQ?`<div class="names" style="margin-bottom:12px">${hits.length?hits.map(x=>
+        `<button class="chipn" data-lp="${x.id}">${esc(x.name)}${x.crew?`<em>C${x.crew}</em>`:""}</button>`).join("")
+        :`<span class="empty-note">No names match.</span>`}</div>`:""}
+      ${p&&pstat?`<p class="help" style="margin:0 0 10px">This season: on the board ${pstat.days} day${pstat.days===1?"":"s"}${pstat.late?`, <b style="color:var(--sand)">late ${pstat.late}×</b>`:""}${pstat.call?`, <b style="color:var(--out)">called in ${pstat.call}×</b>`:""}${pstat.cover?`, shift covered ${pstat.cover}×`:""}.</p>`:""}
+      ${p?hist:logQ?"":`<p class="help" style="margin:0">Type a name to see every job they've been on.</p>`}</div>
+    <div class="card"><h4>Season stats</h4>
+      <p class="help">Days on the board, lates, and call-ins for everyone, all season.</p>
+      <div class="rowline"><select id="statSort">
+        <option value="name" ${statSort==="name"?"selected":""}>Sort by name</option>
+        <option value="late" ${statSort==="late"?"selected":""}>Most late</option>
+        <option value="call" ${statSort==="call"?"selected":""}>Most call-ins</option>
+        <option value="days" ${statSort==="days"?"selected":""}>Most days worked</option></select></div>
+      <table class="log"><thead><tr><th>Person</th><th>Crew</th><th>Days worked</th><th>Late</th>
+        <th>Called in</th><th>Covered</th></tr></thead><tbody>${statRows}</tbody></table></div>
+    <div class="card"><h4>Days on record</h4>
+      ${keys.length?`<table class="log"><thead><tr><th>Date</th><th>Day</th><th>Crews</th><th>In</th>
+        <th>Jobs filled</th><th>Away</th><th>Supervisors</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+        :`<p class="help">Nothing saved yet. Fill in a board and it'll show up here.</p>`}</div>`;
+
+  el.querySelector("#statSort").onchange=e=>{ statSort=e.target.value; renderHistory(); };
+  const lq=el.querySelector("#logQ");
+  lq.oninput=()=>{ const c=lq.selectionStart; logQ=lq.value; renderHistory(); refocus("#logQ",c); };
+  const lc=el.querySelector("#logClear"); if(lc) lc.onclick=()=>{ logPerson=""; renderHistory(); };
+  el.querySelectorAll("[data-lp]").forEach(b=>b.onclick=()=>{ logPerson=b.dataset.lp; logQ=""; renderHistory(); });
+  el.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>{
+    dateKey=b.dataset.goto; view="board";
+    document.querySelectorAll("[data-view]").forEach(x=>x.setAttribute("aria-selected",x.dataset.view==="board"));
+    refresh();
+  });
+}
+function countFilled(d){
+  let n=0;
+  ["talons","ridge"].forEach(c=>Object.values(d[c].assign||{}).forEach(a=>a.forEach(s=>{ if(s&&s.p) n++; })));
+  return n;
+}
+function hasContent(d){
+  return countFilled(d)>0||Object.keys(d.away||{}).length>0||d.talons.notes||d.ridge.notes||d.talons.tee||d.ridge.tee;
+}
+
+/* ══ training ══ */
+function renderTraining(){
+  const el=document.getElementById("viewTraining");
+  const tlist=state.people.slice().sort(byName).filter(p=>matches(p.name,trainQ)&&crewMatch(p,trainCrew));
+  el.innerHTML=`<h3>Training sheet</h3>
+    <p class="help">Every dropdown on the board checks this list. Tick the box the day someone gets signed off.</p>
+    ${state.trainingIsSample?`<div class="banner"><b>Sample data.</b> Everyone is ticked for everything right now.
+      Import the shop's sheet to replace it.</div>`:""}
+    <div class="card"><h4>Import</h4>
+      <p class="help">Names down column A, machines across row 1, Y or N in the cells. Matching names keep
+        their crew and hours, new names get added at the bottom.</p>
+      <div class="rowline"><input type="file" id="xlsxFile" accept=".xlsx,.xls,.csv">
+        <button class="btn key" id="importBtn">Import training sheet</button></div>
+      <div class="rowline"><input type="text" id="newMachine" placeholder="Add a machine by hand…" style="width:260px">
+        <button class="btn" id="addMachine">Add</button></div>
+      <p class="help" style="margin:12px 0 7px">New hires start already signed off on the basics — the green ones.
+        Click a machine to change what counts as basic:</p>
+      <div class="names">${state.machines.map(m=>
+        `<button class="chipn ${(state.basics||[]).includes(m)?"basic":""}" data-bm="${esc(m)}">${esc(m)}</button>`).join("")}</div></div>
+    <div class="rowline"><input type="text" id="trQ" placeholder="Find a name…" style="width:200px" value="${esc(trainQ)}">
+      <select id="trCrew">${crewOpts(trainCrew)}</select>
+      <span class="eyebrow" style="margin-left:auto">${tlist.length} of ${state.people.length}</span></div>
+    <div class="scroll"><table class="grid">
+      <thead><tr><th class="name">Person</th><th>Crew</th><th>Signed off</th>${state.machines.map(m=>`<th>${esc(m)}</th>`).join("")}</tr></thead>
+      <tbody>${tlist.length?tlist.map(p=>`<tr>
+        <td class="name">${esc(p.name)}${p.hours===5?` <span style="font-family:var(--mono);font-size:9px;color:var(--dim)">5H</span>`:""}</td>
+        <td style="font-family:var(--mono);color:var(--mute)">${p.crew?esc(p.crew):"—"}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--dim)" data-cnt="${p.id}">${state.machines.filter(m=>isTrained(p.id,m)).length}/${state.machines.length}</td>
+        ${state.machines.map(m=>`<td><input type="checkbox" data-t="${p.id}|${esc(m)}" ${isTrained(p.id,m)?"checked":""}></td>`).join("")}
+      </tr>`).join(""):`<tr><td class="name" style="color:var(--dim)">Nobody matches.</td><td colspan="${state.machines.length+2}"></td></tr>`}</tbody></table></div>`;
+  el.querySelectorAll("[data-t]").forEach(cb=>cb.onchange=()=>{
+    const [pid,m]=cb.dataset.t.split("|");
+    state.training[pid]=state.training[pid]||{}; state.training[pid][m]=cb.checked;
+    state.trainingIsSample=false; save();
+    const cell=el.querySelector(`[data-cnt="${pid}"]`);
+    if(cell) cell.textContent=state.machines.filter(x=>isTrained(pid,x)).length+"/"+state.machines.length; });
+  el.querySelector("#trQ").oninput=e=>{ const c=e.target.selectionStart; trainQ=e.target.value; renderTraining(); refocus("#trQ",c); };
+  el.querySelector("#trCrew").onchange=e=>{ trainCrew=e.target.value; renderTraining(); };
+  el.querySelectorAll("[data-bm]").forEach(b=>b.onclick=()=>{
+    const m=b.dataset.bm; state.basics=state.basics||[];
+    state.basics=state.basics.includes(m)?state.basics.filter(x=>x!==m):state.basics.concat(m);
+    save(); renderTraining(); });
+  onEnter(el.querySelector("#newMachine"),el.querySelector("#addMachine"));
+  el.querySelector("#addMachine").onclick=()=>{
+    const v=el.querySelector("#newMachine").value.trim();
+    if(v&&!state.machines.includes(v)){ state.machines.push(v); save(); renderTraining(); } };
+  el.querySelector("#importBtn").onclick=importSheet;
+}
+async function loadXLSX(){
+  if(window.XLSX) return true;
+  await new Promise((res,rej)=>{ const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload=res; s.onerror=rej; document.head.appendChild(s); }).catch(()=>{});
+  return !!window.XLSX;
+}
+async function fileRows(inputId){
+  const f=document.getElementById(inputId).files[0];
+  if(!f){ alert("Pick the file first."); return null; }
+  if(!await loadXLSX()){ alert("The spreadsheet reader didn't load — this computer may be offline. Save the sheet as CSV and try again."); return null; }
+  const wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:"array"});
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,blankrows:false});
+  if(!rows.length){ alert("That sheet came through empty."); return null; }
+  return rows;
+}
+function applyTrainingRows(rows){
+  const machines=(rows[0]||[]).slice(1).map(h=>String(h||"").trim()).filter(Boolean);
+  if(!machines.length) return "No machine names found in row 1.";
+  const body=rows.slice(1).map(r=>({name:String(r[0]||"").trim(),r})).filter(x=>x.name);
+  /* names in the sheet that aren't on the crew list — usually people who don't work here anymore */
+  const unknown=body.filter(x=>!state.people.find(p=>norm(p.name)===norm(x.name))).map(x=>x.name);
+  let addUnknown=false;
+  if(unknown.length) addUnknown=confirm(
+    `${unknown.length} name${unknown.length===1?"":"s"} in the sheet ${unknown.length===1?"isn't":"aren't"} on the crew list:\n${unknown.join(", ")}\n\n`+
+    `OK — add them (new hires).\nCancel — skip them (people who don't work here anymore).`);
+  state.machines=machines;
+  let added=0,matched=0;
+  body.forEach(({name,r})=>{
+    let p=state.people.find(x=>norm(x.name)===norm(name));
+    if(!p){ if(!addUnknown) return;
+      p={id:uid(),name,crew:null,days:[1,2,3,4,5],hours:8}; state.people.push(p); added++; }
+    else matched++;
+    state.training[p.id]={};
+    machines.forEach((m,i)=>{ const v=String(r[i+1]||"").trim().toUpperCase();
+      state.training[p.id][m]=(v==="Y"||v==="YES"||v==="X"||v==="TRUE"||v==="1"); });
+  });
+  state.trainingIsSample=false; save();
+  const notInSheet=state.people.filter(p=>!body.find(x=>norm(x.name)===norm(p.name))).map(p=>p.name);
+  const missing=[...new Set(["talons","ridge"].flatMap(c=>state.jobs[c].map(j=>j.req).filter(rq=>rq&&!machines.includes(rq))))];
+  return `Imported ${machines.length} machines.\n${matched} name${matched===1?"":"s"} matched, ${added} added`
+    +(unknown.length&&!addUnknown?`, ${unknown.length} skipped`:"")+`.`
+    +(notInSheet.length?`\n\nOn the crew list but not in this sheet (their boxes start unticked): ${notInSheet.join(", ")}.`:"")
+    +(missing.length?`\n\nThese job rows check machine names that aren't in this sheet, so nobody shows as signed off for them:\n${missing.join(", ")}\nFix them under Setup → job rows.`:"");
+}
+async function importSheet(){
+  try{
+    const rows=await fileRows("xlsxFile"); if(!rows) return;
+    const msg=applyTrainingRows(rows); renderTraining(); if(msg) alert(msg);
+  }catch(e){ alert("That file couldn't be read. Save the training sheet as Excel (.xlsx) or CSV and try again — nothing was changed."); }
+}
+/* crew list import — reads columns headed Crew 1/2/3, or two columns: name then crew */
+function applyCrewRows(rows){
+  const head=(rows[0]||[]).map(h=>String(h||"").trim());
+  const crewOf=h=>{ const m=String(h||"").match(/([123])/); return m?m[1]:null; };
+  const headCrews=head.map(crewOf);
+  const pairs=[];
+  if(headCrews.filter(Boolean).length>=2){
+    rows.slice(1).forEach(r=>r.forEach((cell,i)=>{ const nm=String(cell||"").trim();
+      if(nm&&headCrews[i]) pairs.push({name:nm,crew:headCrews[i]}); }));
+  } else {
+    rows.forEach(r=>{ const nm=String(r[0]||"").trim(); if(!nm) return;
+      if(/^name/i.test(nm)) return;
+      pairs.push({name:nm,crew:crewOf(r[1])}); });
+  }
+  if(!pairs.length) return "Couldn't find names in that file. Use columns headed Crew 1 / Crew 2 / Crew 3, or two columns: name then crew.";
+  let matched=0,added=0;
+  const seen=new Set();
+  pairs.forEach(({name,crew})=>{
+    let p=state.people.find(x=>norm(x.name)===norm(name));
+    if(p){ matched++; if(crew) p.crew=crew; }
+    else { p={id:uid(),name,crew:crew||null,days:[1,2,3,4,5],hours:8};
+      state.training[p.id]={}; state.machines.forEach(m=>state.training[p.id][m]=(state.basics||[]).includes(m));
+      state.people.push(p); added++; }
+    seen.add(p.id);
+  });
+  const gone=state.people.filter(p=>!seen.has(p.id));
+  let removed=0;
+  if(gone.length&&confirm(
+    `${gone.length} name${gone.length===1?"":"s"} on the board ${gone.length===1?"isn't":"aren't"} in this crew list:\n${gone.map(p=>p.name).join(", ")}\n\n`+
+    `OK — remove them (they don't work here anymore).\nCancel — keep them.`)){
+    gone.forEach(p=>{ delete state.training[p.id]; });
+    state.people=state.people.filter(p=>seen.has(p.id));
+    removed=gone.length;
+  }
+  save();
+  return `Crew list read: ${matched} matched, ${added} added${removed?`, ${removed} removed`:""}.`;
+}
+async function importCrew(){
+  try{
+    const rows=await fileRows("crewFile"); if(!rows) return;
+    const msg=applyCrewRows(rows); renderSetup(); updateHead(); if(msg) alert(msg);
+  }catch(e){ alert("That file couldn't be read. Save the crew list as Excel (.xlsx) or CSV and try again — nothing was changed."); }
+}
+const norm=s=>String(s).toLowerCase().replace(/[^a-z]/g,"");
+
+/* ══ setup ══ */
+function renderSetup(){
+  const el=document.getElementById("viewSetup"), crews=["1","2","3"];
+  const plist=state.people.filter(p=>matches(p.name,setupQ)&&crewMatch(p,setupCrew));
+  if(!calMonth) calMonth=dateKey.slice(0,7);
+  el.innerHTML=`<h3>Setup</h3>
+    <p class="help">The crew schedule, shift times, the crew list, and the job rows.</p>
+
+    <div class="card"><h4>Crew schedule</h4>
+      <p class="help">Loaded from the 2026 summer schedule. Click a crew number to change a day,
+        or import the new sheet when the office puts one out.</p>
+      <div class="calbar">
+        <button class="btn" id="calPrev">‹</button>
+        <div class="m" id="calLabel"></div>
+        <button class="btn" id="calNext">›</button>
+        <span style="flex:1"></span>
+        <input type="file" id="schedFile" accept=".xlsx,.xls">
+        <button class="btn key" id="schedImport">Import schedule</button>
+      </div>
+      <div id="cal"></div></div>
+
+    <div class="card"><h4>Clock</h4>
+      <div class="rowline">
+        <label>Shift starts</label><input type="time" id="tStart" value="${state.times.start}">
+        <label style="margin-left:10px">Half shifts flagged</label><input type="time" id="tHalf" value="${state.times.half}">
+        <label style="margin-left:10px">Lunch · PM jobs open</label><input type="time" id="tPm" value="${state.times.pm}">
+        <label style="margin-left:10px">Day ends</label><input type="time" id="tEnd" value="${state.times.end}">
+      </div></div>
+
+    <div class="card"><h4>Crew list <span style="font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.05em">${state.people.length} people</span></h4>
+      <p class="help">Switch the half-shift people to 5 hr. Picking "No crew" turns on the weekday buttons.</p>
+      <div class="rowline"><input type="text" id="plQ" placeholder="Find a name…" style="width:200px" value="${esc(setupQ)}">
+        <select id="plCrew">${crewOpts(setupCrew)}</select>
+        <span class="eyebrow" style="margin-left:auto">${plist.length} of ${state.people.length}</span></div>
+      <div class="prow" style="margin-bottom:9px"><span class="eyebrow">Name</span><span class="eyebrow">Crew</span>
+        <span class="eyebrow">Days worked</span><span class="eyebrow">Shift</span><span></span></div>
+      ${plist.length?plist.map(p=>`<div class="prow">
+        <input type="text" data-pn="${p.id}" value="${esc(p.name)}">
+        <select data-pc="${p.id}"><option value="">No crew</option>
+          ${crews.map(c=>`<option ${p.crew===c?"selected":""}>${c}</option>`).join("")}</select>
+        <div class="dayrow ${p.crew?"off":""}">${DN.map((n,i)=>
+          `<button data-pd="${p.id}|${i}" data-on="${(p.days||[]).includes(i)?1:0}" title="${DF[i]}">${n}</button>`).join("")}</div>
+        <select data-ph="${p.id}"><option value="8" ${p.hours===8?"selected":""}>8 hr</option>
+          <option value="5" ${p.hours===5?"selected":""}>5 hr</option></select>
+        <button class="del" data-px="${p.id}" title="Remove">✕</button></div>`).join("")
+        :`<p class="help" style="margin:2px 0 6px">Nobody matches.</p>`}
+      <div class="rowline" style="margin-top:12px"><input type="text" id="newPerson" placeholder="Add someone…" style="width:216px">
+        <button class="btn" id="addPerson">Add</button></div>
+      <div class="rowline" style="margin-top:8px"><input type="file" id="crewFile" accept=".xlsx,.xls,.csv">
+        <button class="btn" id="crewImport">Import crew list</button></div>
+      <p class="help" style="margin:6px 0 0">Reads columns headed Crew 1 / 2 / 3, or two columns: name then crew.
+        Names already here get matched up, new ones get added with the basics ticked, and anyone missing
+        from the list can be cleared out in one go.</p></div>
+
+    ${["talons","ridge"].map(c=>`<div class="card"><h4>${COURSE[c]} — job rows</h4>
+      <p class="help">"Free text" rows are for whatever needs doing that day. The job gets typed in beside the name.</p>
+      ${state.jobs[c].map(j=>j.type==="divider"?`<div class="rowline">
+        <span class="eyebrow" style="letter-spacing:.16em;flex:1">━━ black divider bar ━━</span>
+        <button class="del" data-jd="${c}|${j.id}">✕</button></div>`:`<div class="rowline">
+        <input type="text" data-jl="${c}|${j.id}" value="${esc(j.label)}" style="width:190px">
+        <select data-jt="${c}|${j.id}" style="width:112px">
+          <option value="fixed" ${j.type!=="open"?"selected":""}>Set job</option>
+          <option value="open" ${j.type==="open"?"selected":""}>Free text</option></select>
+        <select data-jr="${c}|${j.id}" ${j.type==="open"?"disabled":""}><option value="">no training needed</option>
+          ${state.machines.map(m=>`<option ${j.req===m?"selected":""}>${esc(m)}</option>`).join("")}</select>
+        <input type="text" data-js="${c}|${j.id}" value="${j.slots}" style="width:50px" title="Rows">
+        <button class="del" data-jd="${c}|${j.id}">✕</button></div>`).join("")}
+      <div class="rowline"><input type="text" id="newJob-${c}" placeholder="Add a row…" style="width:190px">
+        <button class="btn" data-jadd="${c}">Add</button>
+        <button class="btn" data-jdiv="${c}" title="The black bar that splits everyday jobs from course-specific ones">Add divider</button></div></div>`).join("")}
+
+    <div class="card"><h4>Supervisors</h4>
+      <div class="rowline">${state.supervisors.map((s,i)=>
+        `<span class="chipn" style="cursor:default">${esc(s)}<button class="del" data-sx="${i}" style="font-size:12px">✕</button></span>`).join("")}</div>
+      <div class="rowline"><input type="text" id="newSup" placeholder="Add a supervisor…" style="width:216px">
+        <button class="btn" id="addSup">Add</button></div></div>
+
+    <div class="card" id="syncCard"><h4>Shared board</h4>
+      <p class="help">By itself the board saves to this computer only. Connect every office computer
+        to the same project and they all show one board, with edits coming through in a few seconds.
+        Each day is stored separately, so two people on different days can't overwrite each other.</p>
+      <div class="rowline">
+        <input type="text" id="syncUrl" placeholder="https://xxxx.supabase.co" style="width:290px" value="${esc((state.sync||{}).url||"")}">
+        <input type="password" id="syncKey" placeholder="anon public key" style="width:230px" value="${esc((state.sync||{}).key||"")}">
+        <input type="text" id="syncWho" placeholder="Your name" style="width:150px" value="${esc((state.sync||{}).who||"")}">
+        <button class="btn go" id="syncSave">Connect</button>
+        ${(state.sync||{}).url?`<button class="btn" id="syncOff">Disconnect</button>`:""}
+      </div>
+      <details><summary>One-time setup</summary>
+      <p class="help" style="margin:10px 0 8px">Make a free project at supabase.com, run this in its
+        SQL editor, then paste the project URL and the anon key above on each computer.</p>
+      <div class="sql">create table board (
+  id          text primary key,
+  data        jsonb not null,
+  updated_at  timestamptz not null default now(),
+  updated_by  text
+);
+
+alter table board enable row level security;
+create policy shop_access on board for all using (true) with check (true);
+
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on table public.board to anon, authenticated;
+
+create or replace function touch_board() returns trigger as $$
+begin new.updated_at = now(); return new; end $$ language plpgsql;
+
+create trigger board_touch before insert or update on board
+for each row execute function touch_board();</div>
+      <p class="help" style="margin:0">Anyone with the key can edit the board, same as the Google Doc now.</p>
+      </details></div>
+
+    <div class="card"><h4>Backup</h4>
+      <p class="help">The backup file holds every saved day and every setting. Take one at the end of
+        the season, or before any big change. Restoring one puts everything back the way it was.</p>
+      <div class="rowline"><button class="btn" id="exportBtn">Download a backup</button>
+        <input type="file" id="restoreFile" accept=".json"><button class="btn" id="restoreBtn">Restore</button></div></div>`;
+
+  const q=s=>el.querySelector(s);
+  renderCal();
+  q("#calPrev").onclick=()=>{ calMonth=shiftMonth(calMonth,-1); renderCal(); };
+  q("#calNext").onclick=()=>{ calMonth=shiftMonth(calMonth,1); renderCal(); };
+  q("#schedImport").onclick=importSchedule;
+  ["start","half","pm","end"].forEach(k=>{
+    q("#t"+k[0].toUpperCase()+k.slice(1)).onchange=e=>{ state.times[k]=e.target.value; save(); applyPhase(); renderRibbon(); };
+  });
+  el.querySelectorAll("[data-pn]").forEach(i=>i.oninput=()=>{ person(i.dataset.pn).name=i.value; save(); });
+  el.querySelectorAll("[data-pc]").forEach(s=>s.onchange=()=>{ person(s.dataset.pc).crew=s.value||null; save(); renderSetup(); updateHead(); });
+  el.querySelectorAll("[data-pd]").forEach(b=>b.onclick=()=>{
+    const [pid,i]=b.dataset.pd.split("|"), p=person(pid); p.days=p.days||[];
+    p.days=p.days.includes(+i)?p.days.filter(x=>x!==+i):p.days.concat(+i);
+    b.dataset.on=p.days.includes(+i)?1:0; save(); updateHead(); });
+  el.querySelectorAll("[data-ph]").forEach(s=>s.onchange=()=>{ person(s.dataset.ph).hours=+s.value; save(); });
+  el.querySelectorAll("[data-px]").forEach(b=>b.onclick=()=>{
+    state.people=state.people.filter(p=>p.id!==b.dataset.px); save(); renderSetup(); updateHead(); });
+  q("#plQ").oninput=e=>{ const c=e.target.selectionStart; setupQ=e.target.value; renderSetup(); refocus("#plQ",c); };
+  q("#plCrew").onchange=e=>{ setupCrew=e.target.value; renderSetup(); };
+  q("#crewImport").onclick=importCrew;
+  onEnter(q("#newPerson"),q("#addPerson"));
+  q("#addPerson").onclick=()=>{
+    const v=q("#newPerson").value.trim(); if(!v) return;
+    const p={id:uid(),name:v,crew:null,days:[1,2,3,4,5],hours:8};
+    state.training[p.id]={}; state.machines.forEach(m=>state.training[p.id][m]=(state.basics||[]).includes(m));
+    state.people.push(p); save(); renderSetup(); };
+  el.querySelectorAll("[data-jl]").forEach(i=>i.oninput=()=>{ jobOf(i.dataset.jl).label=i.value; save(); });
+  el.querySelectorAll("[data-jt]").forEach(s=>s.onchange=()=>{
+    const j=jobOf(s.dataset.jt); j.type=s.value; if(j.type==="open") j.req=null; save(); renderSetup(); });
+  el.querySelectorAll("[data-jr]").forEach(s=>s.onchange=()=>{ jobOf(s.dataset.jr).req=s.value||null; save(); });
+  el.querySelectorAll("[data-js]").forEach(i=>i.oninput=()=>{ jobOf(i.dataset.js).slots=Math.max(1,+i.value||1); save(); });
+  el.querySelectorAll("[data-jd]").forEach(b=>b.onclick=()=>{
+    const [c,id]=b.dataset.jd.split("|"); state.jobs[c]=state.jobs[c].filter(j=>j.id!==id); save(); renderSetup(); });
+  el.querySelectorAll("[data-jadd]").forEach(b=>{ const c=b.dataset.jadd;
+    b.onclick=()=>{ const v=q("#newJob-"+c).value.trim();
+      if(v){ state.jobs[c].push({id:uid(),label:v,type:"fixed",req:null,slots:1}); save(); renderSetup(); } };
+    onEnter(q("#newJob-"+c),b); });
+  el.querySelectorAll("[data-jdiv]").forEach(b=>b.onclick=()=>{
+    state.jobs[b.dataset.jdiv].push({id:uid(),type:"divider",label:"",req:null,slots:0}); save(); renderSetup(); });
+  el.querySelectorAll("[data-sx]").forEach(b=>b.onclick=()=>{ state.supervisors.splice(+b.dataset.sx,1); save(); renderSetup(); });
+  onEnter(q("#newSup"),q("#addSup"));
+  q("#addSup").onclick=()=>{ const v=q("#newSup").value.trim();
+    if(v&&!state.supervisors.includes(v)){ state.supervisors.push(v); save(); renderSetup(); } };
+  const sv=q("#syncSave");
+  if(sv) sv.onclick=()=>{
+    const url=q("#syncUrl").value.trim(), key=q("#syncKey").value.trim(), who=q("#syncWho").value.trim();
+    if(!url||!key){ alert("Both the project URL and the anon key are needed."); return; }
+    if(!who){ alert("Add your name so the other managers can see who changed what."); return; }
+    state.sync={url,key,who}; save(); startSync(); renderSetup();
+  };
+  const so=q("#syncOff");
+  if(so) so.onclick=()=>{
+    if(!confirm("Disconnect this computer? The board stays here but stops sharing.")) return;
+    state.sync=null; save(); startSync(); renderSetup();
+  };
+  q("#exportBtn").onclick=()=>{ const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:"application/json"}));
+    a.download=`country-hills-board-${todayKey()}.json`; a.click(); };
+  q("#restoreBtn").onclick=async()=>{
+    const f=q("#restoreFile").files[0]; if(!f){ alert("Pick a backup file first."); return; }
+    try{ state=JSON.parse(await f.text()); save(); refresh(); alert("Restored."); }
+    catch(e){ alert("That file didn't read as a backup."); } };
+}
+function shiftMonth(m,n){ const [y,mo]=m.split("-").map(Number); const d=new Date(y,mo-1+n,1); return d.getFullYear()+"-"+pad(d.getMonth()+1); }
+function renderCal(){
+  const cal=document.getElementById("cal"); if(!cal) return;
+  if(!calMonth) calMonth=dateKey.slice(0,7);
+  const [y,m]=calMonth.split("-").map(Number);
+  const lbl=document.getElementById("calLabel"); if(lbl) lbl.textContent=MN[m-1]+" "+y;
+  const first=new Date(y,m-1,1).getDay(), last=new Date(y,m,0).getDate();
+  let cells=DN.map((d,i)=>`<div class="dowl">${DF[i].slice(0,3)}</div>`).join("");
+  for(let i=0;i<first;i++) cells+=`<div class="cell blank"></div>`;
+  for(let d=1;d<=last;d++){
+    const k=`${y}-${pad(m)}-${pad(d)}`, on=state.schedule[k]||[];
+    cells+=`<div class="cell ${k===todayKey()?"today":""}"><div class="dn">${d}</div><div class="pills">
+      ${["1","2","3"].map(c=>`<button data-sc="${k}|${c}" data-on="${on.includes(c)?1:0}">${c}</button>`).join("")}
+    </div></div>`;
+  }
+  cal.innerHTML=`<div class="calgrid">${cells}</div>`;
+  cal.querySelectorAll("[data-sc]").forEach(b=>b.onclick=()=>{
+    const [k,c]=b.dataset.sc.split("|"), cur=state.schedule[k]||[];
+    state.schedule[k]=cur.includes(c)?cur.filter(x=>x!==c):cur.concat(c).sort();
+    b.dataset.on=state.schedule[k].includes(c)?1:0; save(); updateHead(); });
+}
+async function importSchedule(){
+  const f=document.getElementById("schedFile").files[0];
+  if(!f){ alert("Pick the schedule file first."); return; }
+  if(!await loadXLSX()){ alert("The spreadsheet reader didn't load — this computer may be offline."); return; }
+  const wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:"array"});
+  const COLS={0:0,2:1,4:2,6:3,8:4,10:5,12:6};
+  const num=v=>{ const t=String(v??"").trim(); return /^\d{1,2}(\.0)?$/.test(t)&&+t>=1&&+t<=31?parseInt(t,10):null; };
+  let found=0, months=0; const touched=new Set();
+  wb.SheetNames.forEach(sn=>{
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,blankrows:true,defval:""});
+    const title=String((rows[0]||[])[0]||"");
+    const mi=MN.findIndex(n=>title.toLowerCase().includes(n.toLowerCase()));
+    const ym=title.match(/(20\d\d)/);
+    if(mi<0||!ym) return;
+    months++;
+    const yr=+ym[1], mo=mi+1; let cur={}, last=0;
+    rows.forEach(r=>{
+      const nums={}, crews=[];
+      Object.entries(COLS).forEach(([ci,wd])=>{
+        const v=r[+ci]; const n=num(v);
+        if(n!==null) nums[wd]=n;
+        else if(typeof v==="string"&&v.trim().toLowerCase().startsWith("crew")) crews.push([wd,v.trim().slice(-1)]);
+      });
+      if(Object.keys(nums).length&&!crews.length){
+        cur={}; Object.keys(nums).sort((a,b)=>a-b).forEach(wd=>{
+          const d=nums[wd]; if(last>20&&d<8) return; cur[wd]=d; last=Math.max(last,d); });
+        return;
+      }
+      crews.forEach(([wd,c])=>{
+        if(cur[wd]===undefined) return;
+        const k=`${yr}-${pad(mo)}-${pad(cur[wd])}`;
+        if(!touched.has(k)){ touched.add(k); state.schedule[k]=[]; }
+        if(!state.schedule[k].includes(c)) state.schedule[k].push(c);
+        found++;
+      });
+    });
+  });
+  if(!months){ alert("Couldn't find a month title like \"July 2026\" in cell A1 of any sheet."); return; }
+  Object.keys(state.schedule).forEach(k=>state.schedule[k].sort());
+  save(); renderCal(); updateHead();
+  alert(`Read ${months} month${months===1?"":"s"} of schedule.`);
+}
+function jobOf(k){ const [c,id]=k.split("|"); return state.jobs[c].find(j=>j.id===id); }
+
+/* ══ shared board ══
+   Off by default: saves to this computer only. Connected, every office PC
+   reads and writes the same records. One record per day plus one config
+   record, so different days never overwrite each other. */
+const CFG_KEYS=["machines","people","supervisors","training","trainingIsSample","schedule","times","jobs"];
+let lastSent={}, lastPull="1970-01-01T00:00:00Z", syncState="off", syncSeen=null, pullTimer=null, applyQueued=false;
+
+const syncOn=()=>!!(state&&state.sync&&state.sync.url&&state.sync.key);
+const configPart=()=>Object.fromEntries(CFG_KEYS.map(k=>[k,state[k]]));
+function api(path){ return state.sync.url.replace(/\/+$/,"")+"/rest/v1/"+path; }
+function heads(extra){
+  return Object.assign({apikey:state.sync.key,Authorization:"Bearer "+state.sync.key,
+    "Content-Type":"application/json"},extra||{});
+}
+function setSync(st){ syncState=st; syncStatus(); }
+function syncStatus(){
+  const el=document.getElementById("syncPill"); if(!el) return;
+  if(!syncOn()){ el.className="syncpill"; el.innerHTML=`<i></i>This computer only`; return; }
+  if(syncState==="error"){ el.className="syncpill bad"; el.innerHTML=`<i></i>Sync failed — working offline`; return; }
+  const ago=syncSeen?Math.round((Date.now()-syncSeen)/1000):null;
+  el.className="syncpill live";
+  el.innerHTML=`<i></i>Shared${ago!==null?` · ${ago<60?ago+"s":Math.round(ago/60)+"m"} ago`:""}`;
+}
+function editing(){
+  const a=document.activeElement;
+  return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+}
+async function pushDirty(){
+  if(!syncOn()) return;
+  const recs=[], who=(state.sync.who||"").trim()||"unknown";
+  const cfg=JSON.stringify(configPart());
+  /* a board with zero people (a fresh hosted copy) has nothing worth sharing —
+     never let it overwrite the real roster on the server */
+  if(state.people.length&&lastSent.config!==cfg) recs.push({id:"config",data:JSON.parse(cfg),updated_by:who});
+  Object.keys(state.days).forEach(k=>{
+    const str=JSON.stringify(state.days[k]);
+    if(lastSent["day:"+k]!==str) recs.push({id:"day:"+k,data:state.days[k],updated_by:who});
+  });
+  if(!recs.length) return;
+  try{
+    const r=await fetch(api("board"),{method:"POST",
+      headers:heads({Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify(recs)});
+    if(!r.ok) throw new Error(await r.text());
+    recs.forEach(x=>{ lastSent[x.id]=JSON.stringify(x.data); });
+    syncSeen=Date.now(); setSync("ok");
+  }catch(e){ setSync("error"); }
+}
+async function pullChanges(){
+  if(!syncOn()) return;
+  try{
+    const r=await fetch(api("board?select=id,data,updated_at&updated_at=gt."+encodeURIComponent(lastPull)),{headers:heads()});
+    if(!r.ok) throw new Error(await r.text());
+    const rows=await r.json();
+    syncSeen=Date.now(); setSync("ok");
+    let changed=false;
+    rows.forEach(row=>{
+      if(row.updated_at>lastPull) lastPull=row.updated_at;
+      const str=JSON.stringify(row.data);
+      if(lastSent[row.id]===str) return;              // our own echo
+      if(row.id==="config"){
+        const inc=row.data;
+        if((!inc.people||!inc.people.length)&&state.people.length){ delete inc.people; delete inc.training; }
+        Object.assign(state,inc);
+      }
+      else if(row.id.startsWith("day:")){ state.days[row.id.slice(4)]=row.data; }
+      lastSent[row.id]=str; changed=true;
+    });
+    if(changed){
+      store.set("chgc-board",JSON.stringify(state));
+      if(editing()) applyQueued=true; else refresh();   // never yank a field mid-type
+    } else if(applyQueued&&!editing()){ applyQueued=false; refresh(); }
+  }catch(e){ setSync("error"); }
+}
+function startSync(){
+  clearInterval(pullTimer);
+  if(!syncOn()){ setSync("off"); return; }
+  lastSent={}; lastPull="1970-01-01T00:00:00Z";
+  pullChanges().then(pushDirty);
+  pullTimer=setInterval(()=>{ pullChanges(); pushDirty(); },5000);
+}
+
+/* ══ shell ══ */
+function updateHead(){
+  const on=crewsOn(), d=day(), roster=rosterToday();
+  document.getElementById("crewToggles").innerHTML=["1","2","3"].map(c=>
+    `<button class="crewbtn" data-crew="${c}" data-on="${on.includes(c)?1:0}"
+      title="Crew ${c} ${on.includes(c)?"is in":"is off"} — click to change this day">CREW ${c}</button>`).join("");
+  const five=roster.filter(p=>p.hours===5).length, offc=roster.filter(p=>!p.crew).length;
+  const away=Object.entries(d.away||{}), called=away.filter(([,a])=>!a.by).length, cov=away.length-called;
+  document.getElementById("headcount").innerHTML=
+    `<b>${roster.length}</b> in`+(offc?` · ${offc} off-crew`:"")+(five?` · ${five} half`:"")
+    +(called?` · <span style="color:var(--out)">${called} called in</span>`:"")
+    +(cov?` · <span style="color:var(--turf)">${cov} covered</span>`:"")
+    +(!on.length?` · <span style="color:var(--sand)">no schedule for this date</span>`:"");
+  document.querySelectorAll("[data-crew]").forEach(b=>b.onclick=()=>{
+    const cur=crewsOn().slice(), c=b.dataset.crew;
+    state.schedule[dateKey]=cur.includes(c)?cur.filter(x=>x!==c):cur.concat(c).sort();
+    save(); refresh(); });
+  const dt=new Date(dateKey+"T00:00:00");
+  document.getElementById("tvDate").textContent=dt.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+  document.getElementById("tvCrew").textContent=(on.length?on.map(c=>"CREW "+c).join(" + "):"NO CREW SET")+" · "+roster.length+" IN";
+}
+function tick(){
+  document.getElementById("tvClock").textContent=fmt(nowMin())+" MT";
+  applyPhase();
+  if(view==="board") phaseInfo();
+  fitTV();
+  if(syncOn()) syncStatus();
+}
+/* Shrink the board just enough that every job fits one screen on the TVs.
+   On tablets the two courses stack, so shrinking would make the text tiny —
+   there, keep full size and let people scroll. */
+function fitTV(){
+  const c=document.getElementById("courses"); if(!c) return;
+  if(!document.body.classList.contains("tv")){ c.style.transform=""; c.style.width=""; return; }
+  c.style.transform=""; c.style.width="";
+  const touch=window.matchMedia&&window.matchMedia("(pointer:coarse)").matches;
+  if(touch||window.innerWidth<=1000) return;
+  const top=c.getBoundingClientRect().top;
+  const avail=window.innerHeight-top-6, h=c.scrollHeight;
+  if(h>avail&&h>0){
+    const s=Math.max(.35,avail/h);
+    c.style.width=(100/s)+"%"; c.style.transform="scale("+s+")";
+  }
+}
+function refresh(){
+  document.getElementById("dateInput").value=dateKey;
+  document.getElementById("ribbon").hidden=view!=="board";
+  updateHead(); applyPhase();
+  document.getElementById("viewBoard").hidden=view!=="board";
+  document.getElementById("viewHistory").hidden=view!=="history";
+  document.getElementById("viewTraining").hidden=view!=="training";
+  document.getElementById("viewSetup").hidden=view!=="setup";
+  if(view==="board"){ renderBoard(); renderRibbon(); }
+  if(view==="history") renderHistory();
+  if(view==="training") renderTraining();
+  if(view==="setup") renderSetup();
+}
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{ saveTimer=null; store.set("chgc-board",JSON.stringify(state)); pushDirty(); },250);
+}
+/* flush a pending save when the window closes */
+window.addEventListener("beforeunload",()=>{
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; store.set("chgc-board",JSON.stringify(state)); }
+});
+function shiftDay(n){
+  const d=new Date(dateKey+"T00:00:00"); d.setDate(d.getDate()+n);
+  dateKey=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  calMonth=dateKey.slice(0,7); refresh();
+}
+window.addEventListener("resize",fitTV);
+document.getElementById("prevDay").onclick=()=>shiftDay(-1);
+document.getElementById("nextDay").onclick=()=>shiftDay(1);
+document.getElementById("todayBtn").onclick=()=>{ dateKey=todayKey(); refresh(); };
+document.getElementById("dateInput").onchange=e=>{ dateKey=e.target.value; calMonth=dateKey.slice(0,7); refresh(); };
+document.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>{
+  view=b.dataset.view;
+  document.querySelectorAll("[data-view]").forEach(x=>x.setAttribute("aria-selected",x===b));
+  refresh(); });
+document.getElementById("syncPill").onclick=()=>{
+  view="setup";
+  document.querySelectorAll("[data-view]").forEach(x=>x.setAttribute("aria-selected",x.dataset.view==="setup"));
+  refresh();
+  const c=document.getElementById("syncCard"); if(c) c.scrollIntoView({block:"center"});
+};
+document.getElementById("tvBtn").onclick=()=>{ document.body.classList.add("tv"); fitTV(); };
+document.getElementById("tvExit").onclick=()=>{ document.body.classList.remove("tv"); fitTV(); };
+document.addEventListener("mousedown",e=>{
+  const p=document.getElementById("pickPanel");
+  if(p&&!p.contains(e.target)&&!(e.target.closest&&e.target.closest("[data-pick]"))) closePicker();
+  const m=document.getElementById("moreMenu");
+  if(m&&!m.contains(e.target)&&e.target.id!=="moreBtn") m.remove();
+});
+document.getElementById("moreBtn").onclick=function(){ openMenu(this); };
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ closePicker(); const m=document.getElementById("moreMenu"); if(m) m.remove();
+    document.body.classList.remove("tv"); fitTV(); document.getElementById("modalRoot").innerHTML=""; } });
+
+(async function init(){
+  const raw=await store.get("chgc-board");
+  if(raw){ try{ state=JSON.parse(raw); }catch(e){ state=null; } }
+  if(!state||!state.schemaV||state.schemaV<3){ state=freshState(); save(); }
+  if(state.schemaV===3){
+    /* v3 → v4: the job layout changed to match the shop's real sheet.
+       People, training, schedule, and saved days all stay. */
+    state.schemaV=4;
+    state.basics=BASICS.filter(m=>state.machines.includes(m));
+    state.jobs=freshJobs();
+    save();
+  }
+  state.basics=state.basics||[];
+  /* upgrade older saved boards to the full supervisor list */
+  const gi=state.supervisors.indexOf("Geddes");
+  if(gi>-1) state.supervisors[gi]="Darion Geddes";
+  SUPS.forEach(s=>{ if(!state.supervisors.includes(s)) state.supervisors.push(s); });
+  Object.values(state.days).forEach(d=>["talons","ridge"].forEach(c=>{
+    if(d[c]&&d[c].supervisor==="Geddes") d[c].supervisor="Darion Geddes"; }));
+  refresh(); tick(); setInterval(tick,20000); startSync(); syncStatus();
+})();
+</script>
+</body>
+</html>
