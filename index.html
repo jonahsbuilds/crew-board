@@ -108,6 +108,8 @@
   .tod[data-st=sel]{border-color:var(--sand);color:var(--sand);background:rgba(221,178,104,.12);font-weight:600}
   .tod[data-st=booked]{border-color:var(--turf);color:var(--turf);background:rgba(111,174,106,.14);font-weight:600}
   .tod:not([disabled]):hover{border-color:var(--line2)}
+  .jgrip{cursor:grab;color:var(--dim);user-select:none;font-size:12px;padding:0 1px}
+  .jmv{font-size:9px;flex:none}
   .cutf.note{flex:1;min-width:220px}
   .cutf.note input{background:var(--panel);border:1px solid var(--line);border-radius:5px;color:var(--sand);padding:5px 9px;font-size:13px;width:100%}
   .jobdiv{height:9px;background:#04070A;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
@@ -308,6 +310,7 @@
   body.tv .cutf.note input{pointer-events:none;border-color:transparent;background:none;font-size:18px;font-weight:600}
   body.tv .cutf.note:not(:has(.hasval)){display:none}
   body.tv .cuttl{font-size:17px}
+  body.tv .slot input.txt::placeholder,body.tv .pmcell input.txt::placeholder{color:transparent!important}
 
   @media (max-width:1000px){
     .courses{grid-template-columns:1fr}
@@ -521,6 +524,7 @@ function crewOpts(cur){
 function refocus(sel,pos){ const f=document.querySelector(sel);
   if(f){ f.focus(); const n=pos==null?f.value.length:pos; try{ f.setSelectionRange(n,n); }catch(e){} } }
 const onEnter=(inp,btn)=>{ if(inp&&btn) inp.onkeydown=e=>{ if(e.key==="Enter") btn.click(); }; };
+const jctl=(c,i)=>`<span class="jgrip" title="Drag to reorder">⠿</span><button class="icb jmv" data-jm="${c}|${i}|-1" ${i===0?"disabled":""} title="Move up">▲</button><button class="icb jmv" data-jm="${c}|${i}|1" ${i===state.jobs[c].length-1?"disabled":""} title="Move down">▼</button>`;
 
 function freshState(){
   const s={schemaV:4,machines:MACHINES.slice(),basics:BASICS.slice(),people:[],supervisors:SUPS.slice(),
@@ -1241,8 +1245,6 @@ function renderTraining(){
   const tlist=state.people.slice().sort(byName).filter(p=>matches(p.name,trainQ)&&crewMatch(p,trainCrew));
   el.innerHTML=`<h3>Training sheet</h3>
     <p class="help">Every dropdown on the board checks this list. Tick the box the day someone gets signed off.</p>
-    ${state.trainingIsSample?`<div class="banner"><b>Sample data.</b> Everyone is ticked for everything right now.
-      Import the shop's sheet to replace it.</div>`:""}
     <div class="card"><h4>Import</h4>
       <p class="help">Names down column A, machines across row 1, Y or N in the cells. Matching names keep
         their crew and hours, new names get added at the bottom.</p>
@@ -1435,9 +1437,9 @@ function renderSetup(){
 
     ${["talons","ridge"].map(c=>`<div class="card"><h4>${COURSE[c]} — job rows</h4>
       <p class="help">"Free text" rows are for whatever needs doing that day. The job gets typed in beside the name.</p>
-      ${state.jobs[c].map(j=>j.type==="divider"?`<div class="rowline">
+      ${state.jobs[c].map((j,ji)=>j.type==="divider"?`<div class="rowline jrow" draggable="true" data-ji="${c}|${ji}">${jctl(c,ji)}
         <span class="eyebrow" style="letter-spacing:.16em;flex:1">━━ black divider bar ━━</span>
-        <button class="del" data-jd="${c}|${j.id}">✕</button></div>`:`<div class="rowline">
+        <button class="del" data-jd="${c}|${j.id}">✕</button></div>`:`<div class="rowline jrow" draggable="true" data-ji="${c}|${ji}">${jctl(c,ji)}
         <input type="text" data-jl="${c}|${j.id}" value="${esc(j.label)}" style="width:190px">
         <select data-jt="${c}|${j.id}" style="width:112px">
           <option value="fixed" ${j.type!=="open"?"selected":""}>Set job</option>
@@ -1534,6 +1536,21 @@ for each row execute function touch_board();</div>
     b.onclick=()=>{ const v=q("#newJob-"+c).value.trim();
       if(v){ state.jobs[c].push({id:uid(),label:v,type:"fixed",req:null,slots:1}); save(); renderSetup(); } };
     onEnter(q("#newJob-"+c),b); });
+  el.querySelectorAll("[data-jm]").forEach(b=>b.onclick=()=>{
+    const [c,i,dr]=b.dataset.jm.split("|"), a=state.jobs[c], from=+i, to=from+ +dr;
+    if(to<0||to>=a.length) return;
+    [a[from],a[to]]=[a[to],a[from]]; save(); renderSetup(); });
+  let jdrag=null;
+  el.querySelectorAll(".jrow").forEach(r=>{
+    r.ondragstart=e=>{ jdrag=r.dataset.ji;
+      if(e.dataTransfer){ e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",jdrag); }catch(_){} } };
+    r.ondragover=e=>{ if(jdrag&&jdrag.split("|")[0]===r.dataset.ji.split("|")[0]) e.preventDefault(); };
+    r.ondrop=e=>{ e.preventDefault(); if(!jdrag) return;
+      const c=jdrag.split("|")[0], from=+jdrag.split("|")[1], tc=r.dataset.ji.split("|")[0], to=+r.dataset.ji.split("|")[1];
+      jdrag=null; if(c!==tc||from===to) return;
+      const a=state.jobs[c], [it]=a.splice(from,1); a.splice(to,0,it);
+      save(); renderSetup(); };
+  });
   el.querySelectorAll("[data-jdiv]").forEach(b=>b.onclick=()=>{
     state.jobs[b.dataset.jdiv].push({id:uid(),type:"divider",label:"",req:null,slots:0}); save(); renderSetup(); });
   el.querySelectorAll("[data-sx]").forEach(b=>b.onclick=()=>{ state.supervisors.splice(+b.dataset.sx,1); save(); renderSetup(); });
