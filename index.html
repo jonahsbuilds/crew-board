@@ -102,7 +102,12 @@
   .cutf{display:flex;flex-direction:column;gap:3px}
   .cutf s{text-decoration:none;font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim)}
   .cutf select{background:var(--panel);border:1px solid var(--line);border-radius:5px;color:var(--chalk);padding:5px 8px;font-size:13px}
-  .cutf input[type=date]{background:var(--panel);border:1px solid var(--line);border-radius:5px;color:var(--chalk);padding:5px 8px;font-family:var(--mono);font-size:12.5px}
+  .tod{width:100%;min-height:34px;border:1px solid var(--line);background:var(--panel);border-radius:5px;
+    font-family:var(--mono);font-size:12px;color:var(--chalk);padding:4px 0}
+  .tod[data-st=off]{opacity:.28;background:none;border-color:transparent}
+  .tod[data-st=sel]{border-color:var(--sand);color:var(--sand);background:rgba(221,178,104,.12);font-weight:600}
+  .tod[data-st=booked]{border-color:var(--turf);color:var(--turf);background:rgba(111,174,106,.14);font-weight:600}
+  .tod:not([disabled]):hover{border-color:var(--line2)}
   .cutf.note{flex:1;min-width:220px}
   .cutf.note input{background:var(--panel);border:1px solid var(--line);border-radius:5px;color:var(--sand);padding:5px 9px;font-size:13px;width:100%}
   .jobdiv{height:9px;background:#04070A;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
@@ -194,7 +199,8 @@
   .addslot:hover{color:var(--turf)}
 
   /* crew footer */
-  .crewbar{display:grid;grid-template-columns:1.5fr 1.1fr 1fr;gap:26px;padding:16px 22px 30px;border-top:1px solid var(--line)}
+  .crewbar{display:grid;grid-template-columns:1.4fr 1.1fr 1fr .9fr;gap:24px;padding:16px 22px 30px;border-top:1px solid var(--line)}
+  .chipn.sup-on{border-color:var(--turf);color:var(--turf)}
   .crewbar h4{font-family:var(--display);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 9px;font-weight:600}
   .crewbar h4 em{font-style:normal;color:var(--dim);font-family:var(--mono);font-size:10px;letter-spacing:.06em}
   .names{display:flex;flex-wrap:wrap;gap:6px}
@@ -391,6 +397,7 @@
     <div><h4>In today, not on the board</h4><div class="names" id="benchNames"></div></div>
     <div><h4>On the board <em>click to swap or call in</em></h4><div class="names" id="onNames"></div></div>
     <div><h4>Away &amp; covered</h4><div class="names" id="awayNames"></div></div>
+    <div><h4>Supervisors in</h4><div class="names" id="supNames"></div></div>
   </div>
 </div>
 
@@ -498,7 +505,7 @@ function todayKey(){ const p=mtParts(); return p.y+"-"+pad(p.m)+"-"+pad(p.d); }
 
 let state=null, view="board", dateKey=todayKey(), preview="live", calMonth=null, logPerson="";
 let logQ="", trainQ="", trainCrew="", setupQ="", setupCrew="", statSort="name";
-let toQ="", toPerson="", toFrom="", toTo="", toCover="";
+let toQ="", toPerson="", toMonth="", toSel={};
 
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
@@ -528,10 +535,10 @@ function freshState(){
   return s;
 }
 const defaultCut=()=>({greens:"10 to 4",clean:"clockwise",fairways:"left to right",m3100:"clockwise",primary:"clockwise"});
-const blankDay=()=>({away:{},extra:{},late:{},half:{},note:"",cut:defaultCut(),
+const blankDay=()=>({away:{},extra:{},late:{},half:{},supsIn:[],note:"",cut:defaultCut(),
   talons:{supervisor:"",tee:"",notes:"",assign:{}},ridge:{supervisor:"",tee:"",notes:"",assign:{}}});
 function day(k){ k=k||dateKey; if(!state.days[k]) state.days[k]=blankDay();
-  const d=state.days[k]; d.late=d.late||{}; d.half=d.half||{}; d.note=d.note??""; d.cut=d.cut||defaultCut(); return d; }
+  const d=state.days[k]; d.late=d.late||{}; d.half=d.half||{}; d.supsIn=d.supsIn||[]; d.note=d.note??""; d.cut=d.cut||defaultCut(); return d; }
 const person=id=>state.people.find(p=>p.id===id);
 /* red-name rules: permanently 5-hour, or an 8-hour person taking a half day just today */
 const isHalfToday=pid=>{ const p=person(pid); return !!p&&(p.hours===5||!!(day().half||{})[pid]); };
@@ -661,6 +668,12 @@ function renderBoard(){
       }).join("")
     : `<span class="empty-note">Nobody away. Click any name to mark a call-in or a shift swap, even on a future date.</span>`;
 
+  const sin=d.supsIn||[];
+  document.getElementById("supNames").innerHTML = state.supervisors.length
+    ? state.supervisors.map(s=>`<button class="chipn ${sin.includes(s)?"sup-on":"on"}" data-supin="${esc(s)}"
+        title="${sin.includes(s)?"In this day — click if they're not":"Click if they're in this day"}">${esc(s)}</button>`).join("")
+    : `<span class="empty-note">Add supervisors in Setup.</span>`;
+
   renderCut(); wireBoard(); applyPhase(); fitTV(); buildPrintHead();
 }
 const chip=(p,cls)=>`<button class="chipn ${cls}" data-who="${p.id}">${esc(p.name)}${p.hours===5?`<em>5H</em>`:(day().half||{})[p.id]?`<em class="late">½ DAY</em>`:""}${(day().late||{})[p.id]?`<em class="late">LATE</em>`:""}</button>`;
@@ -727,6 +740,10 @@ function wireBoard(){
     while(cd.assign[jid].length<job.slots) cd.assign[jid].push({p:"",note:"",pm:""});
     cd.assign[jid].push({p:"",note:"",pm:""}); save(); renderBoard(); });
   document.querySelectorAll("[data-who]").forEach(b=>b.onclick=()=>openWho(b.dataset.who));
+  document.querySelectorAll("[data-supin]").forEach(b=>b.onclick=()=>{
+    const d=day(), s=b.dataset.supin; d.supsIn=d.supsIn||[];
+    d.supsIn=d.supsIn.includes(s)?d.supsIn.filter(x=>x!==s):d.supsIn.concat(s);
+    save(); renderBoard(); });
 }
 
 /* ══ name picker ══
@@ -970,34 +987,71 @@ function openWho(id){
 }
 
 /* ══ time off ══
-   Book someone off a stretch of days in advance. Writes the same per-day
-   away records the board already syncs, so nothing new to store or share.
-   Time off is its own type — it never counts as a call-in on the stats. */
+   Click days on a calendar — scattered days are fine — and give each day its
+   own cover. Writes the same per-day away records the board already syncs.
+   Time off is its own type: it never counts as a call-in on the stats. */
 const fmtD=k=>new Date(k+"T00:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"});
 const scheduledOn=(p,k)=>p.crew?(state.schedule[k]||[]).includes(p.crew):(p.days||[]).includes(dow(k));
 function reassignDay(d,fromId,toId){
   ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>
     (d[c].assign[j.id]||[]).forEach(s=>{ if(s&&s.p===fromId) s.p=toId; })));
 }
+function unbookDay(pid,k){
+  const d=state.days[k]; if(!d||!d.away||!d.away[pid]) return;
+  const a=d.away[pid]; delete d.away[pid];
+  if(a&&a.by&&d.extra){
+    const still=Object.values(d.away).some(x=>x.by===a.by);
+    if(!still) delete d.extra[a.by];
+  }
+  save();
+}
 function renderTimeoff(){
   const el=document.getElementById("viewTimeoff");
   const p=toPerson?person(toPerson):null;
+  if(!p) toSel={};
+  const today=todayKey();
   const hits=toQ?state.people.filter(x=>matches(x.name,toQ)).sort(byName).slice(0,14):[];
-  const others=p?state.people.filter(x=>x.id!==p.id).sort(byName):[];
-  if(!toFrom||toFrom<todayKey()) toFrom=toFrom||todayKey();
-  if(!toTo||toTo<toFrom) toTo=toFrom;
-  let workDays=[];
+  if(!toMonth) toMonth=today.slice(0,7);
+
+  let calHTML="";
   if(p){
-    const d=new Date(toFrom+"T00:00:00"), end=new Date(toTo+"T00:00:00");
-    for(;d<=end;d.setDate(d.getDate()+1)){
-      const k=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-      if(scheduledOn(p,k)) workDays.push(k);
+    const [y,m]=toMonth.split("-").map(Number);
+    const first=new Date(y,m-1,1).getDay(), last=new Date(y,m,0).getDate();
+    let cells=DN.map((d,i)=>`<div class="dowl">${DF[i].slice(0,3)}</div>`).join("");
+    for(let i=0;i<first;i++) cells+=`<div class="cell blank"></div>`;
+    for(let dd=1;dd<=last;dd++){
+      const k=`${y}-${pad(m)}-${pad(dd)}`;
+      const booked=!!(state.days[k]&&state.days[k].away&&state.days[k].away[p.id]&&state.days[k].away[p.id].type==="timeoff");
+      const past=k<today, sched=scheduledOn(p,k);
+      const st2=booked?"booked":toSel[k]!==undefined?"sel":(!sched||past)?"off":"free";
+      cells+=`<div class="cell ${k===today?"today":""}"><button class="tod" data-tk="${k}" data-st="${st2}" ${st2==="off"?"disabled":""}
+        title="${st2==="booked"?"Booked off — click to cancel this day":st2==="off"?(past?"Already happened":"Not scheduled that day anyway"):st2==="sel"?"Picked — click to unpick":"Click to pick this day off"}">${dd}</button></div>`;
     }
+    calHTML=`<div class="rowline" style="margin:6px 0 8px"><button class="icb" id="toPrev">‹</button>
+      <span class="eyebrow" style="min-width:120px;text-align:center">${MN[m-1]} ${y}</span>
+      <button class="icb" id="toNext">›</button>
+      <span class="eyebrow" style="margin-left:14px">green = booked off · gold = picked · faded = not in anyway</span></div>
+      <div class="calgrid" id="toCal">${cells}</div>`;
   }
-  const runs=timeoffRuns2();
+
+  const selKeys=Object.keys(toSel).sort();
+  const others=p?state.people.filter(x=>x.id!==p.id).sort(byName):[];
+  const coverOpts=cur=>`<option value="">Nobody — jobs stay open</option>`+others.map(o=>
+    `<option value="${o.id}" ${cur===o.id?"selected":""}>${esc(o.name)}${o.crew?" · Crew "+o.crew:""}</option>`).join("");
+  const bookedDays=p?Object.keys(state.days).sort().filter(k=>k>=today
+    &&state.days[k].away&&state.days[k].away[p.id]&&state.days[k].away[p.id].type==="timeoff")
+    .map(k=>({k,by:state.days[k].away[p.id].by})):[];
+
+  const perP={};
+  Object.keys(state.days).sort().forEach(k=>{
+    if(k<today) return;
+    Object.entries(state.days[k].away||{}).forEach(([pid,a])=>{
+      if(a.type==="timeoff") (perP[pid]=perP[pid]||[]).push(k); });
+  });
+
   el.innerHTML=`<h3>Time off</h3>
-    <p class="help">Book someone off days in advance — vacation, appointments, whatever. Every affected
-      day gets set up now, so nobody has to remember on the morning of.</p>
+    <p class="help">Click the days someone's taking off — they don't have to be in a row — then pick who's
+      covering each one. It's all set up now, so when those days come around they're already off the board.</p>
     <div class="card"><h4>Book time off</h4>
       <div class="rowline">
         <input type="text" id="toQ" placeholder="Type a name…" style="width:216px" value="${esc(toQ)}">
@@ -1006,86 +1060,62 @@ function renderTimeoff(){
       ${toQ?`<div class="names" style="margin-bottom:12px">${hits.length?hits.map(x=>
         `<button class="chipn" data-tp="${x.id}">${esc(x.name)}${x.crew?`<em>C${x.crew}</em>`:""}</button>`).join("")
         :`<span class="empty-note">No names match.</span>`}</div>`:""}
-      ${p?`
-      <div class="rowline">
-        <label class="cutf"><s>First day off</s><input type="date" id="toFrom" value="${toFrom}"></label>
-        <label class="cutf"><s>Last day off</s><input type="date" id="toTo" value="${toTo}"></label>
-        <label class="cutf"><s>Who's covering (optional)</s>
-          <select id="toCover"><option value="">Nobody — jobs stay open</option>
-            ${others.map(o=>`<option value="${o.id}" ${toCover===o.id?"selected":""}>${esc(o.name)}${o.crew?" · Crew "+o.crew:""}</option>`).join("")}
-          </select></label>
-      </div>
-      <p class="help" style="margin:8px 0 10px">${workDays.length
-        ?`That's ${workDays.length} work day${workDays.length===1?"":"s"} for ${esc(p.name)} (${fmtD(workDays[0])}${workDays.length>1?" – "+fmtD(workDays[workDays.length-1]):""}). Days they weren't scheduled anyway get skipped.`
-        :`${esc(p.name)} isn't scheduled on any day in that stretch — nothing to book.`}</p>
-      <div class="rowline"><button class="btn go" id="toApply" ${workDays.length?"":"disabled"}>Book it</button></div>`
-      :`<p class="help" style="margin:0">Type a name to get started.</p>`}
+      ${p?calHTML:`<p class="help" style="margin:0">Type a name to open their calendar.</p>`}
+      ${selKeys.length?`<div style="margin-top:14px">
+        ${selKeys.map(k=>`<div class="rowline">
+          <span style="font-family:var(--mono);font-size:12px;min-width:104px">${DF[dow(k)].slice(0,3)} ${fmtD(k)}</span>
+          <select data-cv="${k}" style="max-width:270px">${coverOpts(toSel[k])}</select>
+          <button class="del" data-unsel="${k}" title="Unpick">✕</button></div>`).join("")}
+        <div class="rowline" style="margin-top:8px"><button class="btn go" id="toApply">Book ${selKeys.length} day${selKeys.length===1?"":"s"}</button></div>
+      </div>`:""}
+      ${p&&bookedDays.length?`<p class="help" style="margin:16px 0 6px">Already booked for ${esc(p.name)} — click ✕ (or the green day above) to cancel one:</p>
+        ${bookedDays.map(b=>{ const cvp=b.by?person(b.by):null;
+          return `<div class="rowline">
+            <span style="font-family:var(--mono);font-size:12px;min-width:104px">${DF[dow(b.k)].slice(0,3)} ${fmtD(b.k)}</span>
+            ${cvp?`<span style="font-size:12px;color:var(--turf)">covered by ${esc(cvp.name)}</span>`:`<span style="font-size:12px;color:var(--dim)">no cover</span>`}
+            <button class="del" data-unbook="${b.k}" title="Cancel this day">✕</button></div>`; }).join("")}`:""}
     </div>
-    <div class="card"><h4>Booked time off</h4>
-      ${runs.length?runs.map((r,i)=>{
-        const rp=person(r.pid), cvp=r.by?person(r.by):null;
-        return `<div class="rowline"><span class="chipn" style="cursor:default">${esc(rp?rp.name:"?")}</span>
-          <span style="font-family:var(--mono);font-size:12px;color:var(--mute)">${fmtD(r.from)} – ${fmtD(r.to)} · ${r.keys.length} day${r.keys.length===1?"":"s"}</span>
-          ${cvp?`<span style="font-size:12px;color:var(--turf)">covered by ${esc(cvp.name)}</span>`:`<span style="font-size:12px;color:var(--dim)">no cover</span>`}
-          <button class="del" data-tr="${i}" title="Cancel this time off">✕</button></div>`;
-      }).join("")
-      :`<p class="help" style="margin:0">Nothing booked from today on. Time off already taken shows up in History and on the stats.</p>`}
+    <div class="card"><h4>Everyone's booked time off</h4>
+      ${Object.keys(perP).length?Object.entries(perP).map(([pid,ks])=>{
+        const rp=person(pid); if(!rp) return "";
+        return `<div class="rowline"><button class="chipn" data-toview="${pid}">${esc(rp.name)}</button>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--mute)">${ks.length} day${ks.length===1?"":"s"} · ${fmtD(ks[0])}${ks.length>1?" – "+fmtD(ks[ks.length-1]):""}</span>
+          <span class="eyebrow">click the name to see or change the days</span></div>`; }).join("")
+      :`<p class="help" style="margin:0">Nothing booked from today on. Time off already taken shows in History and on the stats.</p>`}
     </div>`;
 
   const q2=el.querySelector("#toQ");
   q2.oninput=()=>{ const c=q2.selectionStart; toQ=q2.value; renderTimeoff(); refocus("#toQ",c); };
-  const tcl=el.querySelector("#toClear"); if(tcl) tcl.onclick=()=>{ toPerson=""; renderTimeoff(); };
-  el.querySelectorAll("[data-tp]").forEach(b=>b.onclick=()=>{ toPerson=b.dataset.tp; toQ=""; renderTimeoff(); });
-  const ff=el.querySelector("#toFrom"), tt=el.querySelector("#toTo"), cvs=el.querySelector("#toCover");
-  if(ff) ff.onchange=()=>{ toFrom=ff.value; renderTimeoff(); };
-  if(tt) tt.onchange=()=>{ toTo=tt.value; renderTimeoff(); };
-  if(cvs) cvs.onchange=()=>{ toCover=cvs.value; };
+  const tcl=el.querySelector("#toClear"); if(tcl) tcl.onclick=()=>{ toPerson=""; toSel={}; renderTimeoff(); };
+  el.querySelectorAll("[data-tp]").forEach(b=>b.onclick=()=>{ toPerson=b.dataset.tp; toQ=""; toSel={}; renderTimeoff(); });
+  const pv=el.querySelector("#toPrev"), nx=el.querySelector("#toNext");
+  if(pv) pv.onclick=()=>{ toMonth=shiftMonth(toMonth,-1); renderTimeoff(); };
+  if(nx) nx.onclick=()=>{ toMonth=shiftMonth(toMonth,1); renderTimeoff(); };
+  el.querySelectorAll(".tod").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.tk, st2=b.dataset.st;
+    if(st2==="free") toSel[k]="";
+    else if(st2==="sel") delete toSel[k];
+    else if(st2==="booked") unbookDay(p.id,k);
+    renderTimeoff(); });
+  el.querySelectorAll("[data-cv]").forEach(sl=>sl.onchange=()=>{ toSel[sl.dataset.cv]=sl.value; });
+  el.querySelectorAll("[data-unsel]").forEach(b=>b.onclick=()=>{ delete toSel[b.dataset.unsel]; renderTimeoff(); });
+  el.querySelectorAll("[data-unbook]").forEach(b=>b.onclick=()=>{ unbookDay(p.id,b.dataset.unbook); renderTimeoff(); });
   const ap=el.querySelector("#toApply");
   if(ap) ap.onclick=()=>{
-    workDays.forEach(k=>{
-      const d=day(k);
-      d.away=d.away||{}; d.away[p.id]={type:"timeoff",by:toCover||null};
-      if(toCover){ d.extra=d.extra||{}; d.extra[toCover]=true; reassignDay(d,p.id,toCover); }
+    const ks=Object.keys(toSel).sort();
+    ks.forEach(k=>{
+      const d=day(k), by=toSel[k]||null;
+      d.away=d.away||{}; d.away[p.id]={type:"timeoff",by};
+      if(by){ d.extra=d.extra||{}; d.extra[by]=true; reassignDay(d,p.id,by); }
     });
     save();
-    const cvp=toCover?person(toCover):null;
-    alert(`${p.name} is off ${fmtD(workDays[0])}${workDays.length>1?" – "+fmtD(workDays[workDays.length-1]):""} — ${workDays.length} work day${workDays.length===1?"":"s"} booked${cvp?", covered by "+cvp.name:""}.`);
-    toPerson=""; toCover=""; renderTimeoff();
+    alert(`${p.name}: ${ks.length} day${ks.length===1?"":"s"} booked off (${fmtD(ks[0])}${ks.length>1?" – "+fmtD(ks[ks.length-1])+", each with its own cover":""}).`);
+    toSel={}; renderTimeoff();
   };
-  el.querySelectorAll("[data-tr]").forEach(b=>b.onclick=()=>{
-    const r=runs[+b.dataset.tr], rp=person(r.pid);
-    if(!confirm(`Cancel ${rp?rp.name:"this person"}'s time off (${fmtD(r.from)} – ${fmtD(r.to)})? They go back on those boards.`)) return;
-    r.keys.forEach(k=>{
-      const d=state.days[k]; if(!d||!d.away) return;
-      const a=d.away[r.pid]; delete d.away[r.pid];
-      if(a&&a.by&&d.extra){
-        const stillNeeded=Object.values(d.away).some(x=>x.by===a.by);
-        if(!stillNeeded) delete d.extra[a.by];
-      }
-    });
-    save(); renderTimeoff();
-  });
-}
-/* runs grouped per person, gaps of up to 3 calendar days (weekends, days off) stay one booking */
-function timeoffRuns2(){
-  const today=todayKey(), byP={};
-  Object.keys(state.days).sort().forEach(k=>{
-    if(k<today) return;
-    Object.entries(state.days[k].away||{}).forEach(([pid,a])=>{
-      if(a.type!=="timeoff") return;
-      (byP[pid]=byP[pid]||[]).push({k,by:a.by||""});
-    });
-  });
-  const runs=[];
-  Object.entries(byP).forEach(([pid,arr])=>{
-    let run=null;
-    arr.forEach(e=>{
-      const gap=run?(new Date(e.k+"T00:00:00")-new Date(run.to+"T00:00:00"))/86400000:99;
-      if(run&&gap<=3&&e.by===run.by){ run.to=e.k; run.keys.push(e.k); }
-      else { run={pid,from:e.k,to:e.k,by:e.by,keys:[e.k]}; runs.push(run); }
-    });
-  });
-  return runs.sort((a,b)=>a.from<b.from?-1:1);
+  el.querySelectorAll("[data-toview]").forEach(b=>b.onclick=()=>{
+    toPerson=b.dataset.toview; toQ=""; toSel={};
+    const ks=perP[b.dataset.toview]; if(ks&&ks.length) toMonth=ks[0].slice(0,7);
+    renderTimeoff(); });
 }
 
 /* ══ history ══ */
@@ -1104,7 +1134,8 @@ function renderHistory(){
       <td>${rosterToday(k).length}</td><td>${filled}</td>
       <td>${aents.length?[callN?`<span style="color:var(--out)">${callN} called in</span>`:"",
         covN?`${covN} covered`:"",offN?`${offN} off`:""].filter(Boolean).join(" · "):"—"}</td>
-      <td>${esc(d.talons.supervisor||"—")} / ${esc(d.ridge.supervisor||"—")}</td>
+      <td>${d.supsIn&&d.supsIn.length?esc(d.supsIn.join(", "))
+        :esc(d.talons.supervisor||"—")+" / "+esc(d.ridge.supervisor||"—")}</td>
       <td><button class="btn" data-goto="${k}" style="padding:3px 9px;font-size:12px">Open</button></td></tr>`;
   }).join("");
 
@@ -1200,7 +1231,8 @@ function countFilled(d){
   return n;
 }
 function hasContent(d){
-  return countFilled(d)>0||Object.keys(d.away||{}).length>0||d.talons.notes||d.ridge.notes||d.talons.tee||d.ridge.tee;
+  return countFilled(d)>0||Object.keys(d.away||{}).length>0||(d.supsIn&&d.supsIn.length>0)
+    ||d.talons.notes||d.ridge.notes||d.talons.tee||d.ridge.tee;
 }
 
 /* ══ training ══ */
