@@ -23,9 +23,8 @@
     --body:"IBM Plex Sans",system-ui,sans-serif;
     --mono:"IBM Plex Mono",ui-monospace,monospace;
     --gutter:180px;
-    --cols:minmax(0,1.1fr) minmax(0,1fr);
+    --cols:minmax(0,1.05fr) minmax(0,.95fr) minmax(0,.95fr);
   }
-  body.phase-pm{--cols:minmax(0,1.1fr) minmax(0,.9fr) minmax(0,.9fr)}
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
@@ -39,7 +38,9 @@
   html.light .crewbtn[data-on="1"]{color:#fff}
   html.light .pills button[data-on="1"]{color:#fff}
   html.light .datenav input[type=date]{color-scheme:light}
-  html.light .pmcell input.txt::placeholder{color:rgba(19,111,150,.5)}
+  html.light .pmcell input.pm::placeholder{color:rgba(19,111,150,.5)}
+  html.light .pmcell input.j2::placeholder{color:rgba(143,107,20,.5)}
+  html.light .slot input.txt::placeholder{color:#8A93A0}
   html.light .pickpanel,html.light .menu{box-shadow:0 18px 44px rgba(60,50,25,.22)}
   body{background:var(--night);color:var(--chalk);font-family:var(--body);font-size:15px;-webkit-font-smoothing:antialiased}
   button,select,input,textarea{font-family:inherit;font-size:inherit;color:inherit}
@@ -134,7 +135,10 @@
   .colhead>div:first-child{padding:7px 12px 7px 18px}
   .colrest{display:grid;grid-template-columns:var(--cols);gap:10px;padding:7px 16px}
   .colhead span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-  .colhead .pmcell span{color:var(--pm)}
+  .colhead .pmcell .j2lab{color:var(--sand)}
+  .colhead .pmcell .pmlab{color:var(--pm);display:none}
+  body.phase-pm .colhead .pmcell .j2lab{display:none}
+  body.phase-pm .colhead .pmcell .pmlab{display:inline}
 
   .job{display:grid;grid-template-columns:var(--gutter) 1fr;border-bottom:1px solid var(--line)}
   .job:nth-of-type(odd){background:var(--panel)}
@@ -150,13 +154,17 @@
   .slot select{width:100%;background:var(--night);border:1px solid var(--line);border-radius:4px;padding:5px 7px;min-width:0}
   .slot select.empty{color:var(--dim)}
   .slot select.override{border-color:var(--out)}
-  .slot input.txt{width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line);padding:5px 2px;font-size:13.5px;min-width:0}
+  .slot input.txt{width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line);
+    padding:5px 2px;font-size:14px;color:var(--chalk);min-width:0}
   .slot input.txt::placeholder{color:#4A5862}
   .slot input.txt:focus{border-bottom-color:var(--line2)}
-  .pmcell{display:none}
-  body.phase-pm .pmcell{display:block}
-  .pmcell input.txt{color:var(--pm);border-bottom-color:rgba(99,184,212,.32)}
-  .pmcell input.txt::placeholder{color:rgba(99,184,212,.42)}
+  .pmcell{display:block}
+  .pmcell input.j2{color:var(--sand);border-bottom-color:rgba(221,178,104,.30)}
+  .pmcell input.j2::placeholder{color:rgba(221,178,104,.45)}
+  .pmcell input.pm{color:var(--pm);border-bottom-color:rgba(99,184,212,.32);display:none}
+  .pmcell input.pm::placeholder{color:rgba(99,184,212,.45)}
+  body.phase-pm .pmcell input.j2{display:none}
+  body.phase-pm .pmcell input.pm{display:block}
   .pick{width:100%;text-align:left;background:var(--night);border:1px solid var(--line);border-radius:4px;
     padding:5px 8px;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pick:hover{border-color:var(--line2)}
@@ -298,8 +306,9 @@
   body.tv .colhead span{font-size:11px}
   body.tv .slot select,body.tv .slot input.txt,body.tv .pick{border:0;background:none;font-family:var(--display);
     font-size:26px;letter-spacing:.03em;appearance:none;-webkit-appearance:none;padding:1px 0;pointer-events:none;line-height:1.14}
-  body.tv .slot input.txt{font-size:19px;color:var(--mute);border-bottom:0;font-family:var(--body)}
-  body.tv .pmcell input.txt{color:var(--pm)}
+  body.tv .slot input.txt{font-size:20px;color:var(--chalk);border-bottom:0;font-family:var(--body);font-weight:500}
+  body.tv .pmcell input.j2{color:var(--sand)}
+  body.tv .pmcell input.pm{color:var(--pm)}
   body.tv .slot select.empty,body.tv .pick.empty{opacity:.16}
   body.tv .flag{font-size:10px}
   body.tv .tt{font-size:26px;border:0;background:none;width:auto;padding:0}
@@ -465,6 +474,13 @@ const OFFCREW=[];
 const MACHINES=["Tees & Pins","Greens Triplex","Greens Walk","Roller","Collars/Approach","Fairway 3100",
   "Tee Mower","Rough 3500","Rough 4500","Primary Mower","Bunker Rake","Blower","Sprayer","Irrigation","Hort",
   "Push Mower","Tractor/Utility"];
+/* what usually goes in the First Job box for each row — managers can edit these in Setup */
+const JOBOPTS={
+  "Mow Greens":["Triplex","Walker","Skip Nursery"],
+  "Roll Greens":["Cleanups"],
+  "Mow Fairways":["3100","Triplex"],
+  "Mow Tees":["Triplex","Walker"],
+  "Collars / Fallaways":["Collars","Fallaways"]};
 /* jobs every new hire can do on day one — managers can change the list on the Training tab */
 const BASICS=["Tees & Pins","Bunker Rake","Blower","Push Mower"];
 /* the top section runs on both courses every day; below the divider each course has its own rows */
@@ -476,7 +492,7 @@ const TOP=[
   {label:"Mow Tees",req:"Tee Mower",slots:2},
   {label:"Primary",req:"Primary Mower",slots:1}];
 function freshJobs(){
-  const mk=j=>({id:uid(),type:"fixed",...j}), div=()=>({id:uid(),type:"divider",label:"",req:null,slots:0});
+  const mk=j=>({id:uid(),type:"fixed",opts:(JOBOPTS[j.label]||[]).slice(),...j}), div=()=>({id:uid(),type:"divider",label:"",req:null,slots:0});
   const talons=TOP.map(mk); talons.splice(3,0,mk({label:"Collars / Fallaways",req:"Collars/Approach",slots:3}));
   talons.push(div(),mk({label:"Rough 3500",req:"Rough 3500",slots:3}),
     mk({label:"Bunkers",req:"Bunker Rake",slots:6}),{id:uid(),type:"open",label:"Other",req:null,slots:3});
@@ -527,7 +543,7 @@ const onEnter=(inp,btn)=>{ if(inp&&btn) inp.onkeydown=e=>{ if(e.key==="Enter") b
 const jctl=(c,i)=>`<span class="jgrip" title="Drag to reorder">⠿</span><button class="icb jmv" data-jm="${c}|${i}|-1" ${i===0?"disabled":""} title="Move up">▲</button><button class="icb jmv" data-jm="${c}|${i}|1" ${i===state.jobs[c].length-1?"disabled":""} title="Move down">▼</button>`;
 
 function freshState(){
-  const s={schemaV:4,machines:MACHINES.slice(),basics:BASICS.slice(),people:[],supervisors:SUPS.slice(),
+  const s={schemaV:5,machines:MACHINES.slice(),basics:BASICS.slice(),people:[],supervisors:SUPS.slice(),
     training:{},trainingIsSample:true,
     schedule:Object.fromEntries(Object.entries(SCHED).map(([k,v])=>[k,v.split("")])),
     times:{start:"05:30",half:"09:30",pm:"10:30",end:"14:00"},
@@ -697,19 +713,23 @@ function courseHTML(c,d,roster){
           placeholder="Frost delay, tournament, cart path only…">${esc(cd.notes)}</textarea></div>
     </div>
     <div class="colhead"><div><span>Job</span></div>
-      <div class="colrest"><span>Name</span><span>Second job</span><div class="pmcell"><span>PM job</span></div></div></div>
+      <div class="colrest"><span>Name</span><span>First job</span>
+        <div class="pmcell"><span class="j2lab">Second job</span><span class="pmlab">PM job</span></div></div></div>
     ${state.jobs[c].map(j=>jobHTML(c,j,cd,roster)).join("")}</div>`;
 }
 function jobHTML(c,job,cd,roster){
   if(job.type==="divider") return `<div class="jobdiv"></div>`;
   const arr=cd.assign[job.id]||[], n=Math.max(job.slots,arr.length);
-  let rows=""; for(let i=0;i<n;i++) rows+=slotHTML(c,job,i,arr[i]||{p:"",note:"",pm:""},roster);
+  let rows=""; for(let i=0;i<n;i++) rows+=slotHTML(c,job,i,arr[i]||{p:"",note:"",note2:"",pm:""},roster);
+  const opts=(job.opts||[]).filter(Boolean);
   return `<div class="job ${job.type==="open"?"open":""}">
+    ${opts.length?`<datalist id="dl-${job.id}">${opts.map(o=>`<option value="${esc(o)}"></option>`).join("")}</datalist>`:""}
     <div class="jlabel"><b>${esc(job.label)}</b>${job.req?`<s>${esc(job.req)}</s>`:""}</div>
     <div class="slots">${rows}<button class="addslot" data-add="${c}|${job.id}">+ another person</button></div></div>`;
 }
 function slotHTML(c,job,i,s,roster){
   const key=`${c}|${job.id}|${i}`, d=day(), pick=s.p, pk=pick?person(pick):null;
+  const jopts=(job.opts||[]).filter(Boolean);
   const override=pick&&!isTrained(pick,job.req), dup=pick?assignedElsewhere(pick,key):[];
   const aw=pick?(d.away||{})[pick]:null, half=pick&&isHalfToday(pick), late=pick&&(d.late||{})[pick];
   const flags=[
@@ -723,26 +743,30 @@ function slotHTML(c,job,i,s,roster){
         data-pick="${key}" title="${pick?"Click to change":"Click to assign"}">${esc(pk?pk.name:"—")}</button>
       ${flags?`<div class="flags">${flags}</div>`:""}</div>
     <div><input class="txt" data-note="${key}" value="${esc(s.note||"")}"
-      placeholder="${job.type==="open"?"what needs doing…":"second job…"}"></div>
-    <div class="pmcell"><input class="txt" data-pm="${key}" value="${esc(s.pm||"")}"
-      placeholder="${half?"—":"PM job…"}" ${half?"disabled":""}></div></div>`;
+      ${jopts.length?`list="dl-${job.id}"`:""}
+      placeholder="${esc(job.type==="open"?"what needs doing…":jopts.length?jopts.slice(0,2).join(" / ")+(jopts.length>2?"…":""):"first job…")}"></div>
+    <div class="pmcell">
+      <input class="txt j2" data-n2="${key}" value="${esc(s.note2||"")}" placeholder="second job…">
+      <input class="txt pm" data-pm="${key}" value="${esc(s.pm||"")}"
+        placeholder="${half?"—":"PM job…"}" ${half?"disabled":""}></div></div>`;
 }
 function setSlot(key,patch){
   const [c,jid,i]=key.split("|"), cd=day()[c];
   cd.assign[jid]=cd.assign[jid]||[];
-  cd.assign[jid][+i]=Object.assign({p:"",note:"",pm:""},cd.assign[jid][+i],patch);
+  cd.assign[jid][+i]=Object.assign({p:"",note:"",note2:"",pm:""},cd.assign[jid][+i],patch);
 }
 function wireBoard(){
   document.querySelectorAll("[data-f]").forEach(el=>el.oninput=()=>{
     day()[el.dataset.c][el.dataset.f]=el.value; save(); });
   document.querySelectorAll("[data-pick]").forEach(el=>el.onclick=()=>openPicker(el));
   document.querySelectorAll("[data-note]").forEach(el=>el.oninput=()=>{ setSlot(el.dataset.note,{note:el.value}); save(); });
+  document.querySelectorAll("[data-n2]").forEach(el=>el.oninput=()=>{ setSlot(el.dataset.n2,{note2:el.value}); save(); });
   document.querySelectorAll("[data-pm]").forEach(el=>el.oninput=()=>{ setSlot(el.dataset.pm,{pm:el.value}); save(); });
   document.querySelectorAll("[data-add]").forEach(el=>el.onclick=()=>{
     const [c,jid]=el.dataset.add.split("|"), job=state.jobs[c].find(j=>j.id===jid), cd=day()[c];
     cd.assign[jid]=cd.assign[jid]||[];
-    while(cd.assign[jid].length<job.slots) cd.assign[jid].push({p:"",note:"",pm:""});
-    cd.assign[jid].push({p:"",note:"",pm:""}); save(); renderBoard(); });
+    while(cd.assign[jid].length<job.slots) cd.assign[jid].push({p:"",note:"",note2:"",pm:""});
+    cd.assign[jid].push({p:"",note:"",note2:"",pm:""}); save(); renderBoard(); });
   document.querySelectorAll("[data-who]").forEach(b=>b.onclick=()=>openWho(b.dataset.who));
   document.querySelectorAll("[data-supin]").forEach(b=>b.onclick=()=>{
     const d=day(), s=b.dataset.supin; d.supsIn=d.supsIn||[];
@@ -872,9 +896,9 @@ function copyFrom(k){
     const arr=src[c].assign[j.id]||[];
     if(!arr.length) return;
     d[c].assign[j.id]=arr.map(sl=>{
-      if(!sl||!sl.p) return {p:"",note:(sl&&sl.note)||"",pm:""};
-      if(have.has(sl.p)){ moved++; return {p:sl.p,note:sl.note||"",pm:""}; }
-      dropped++; return {p:"",note:sl.note||"",pm:""};
+      if(!sl||!sl.p) return {p:"",note:(sl&&sl.note)||"",note2:(sl&&sl.note2)||"",pm:""};
+      if(have.has(sl.p)){ moved++; return {p:sl.p,note:sl.note||"",note2:sl.note2||"",pm:""}; }
+      dropped++; return {p:"",note:sl.note||"",note2:sl.note2||"",pm:""};
     });
   }));
   return {moved,dropped};
@@ -1151,14 +1175,15 @@ function renderHistory(){
       const d=state.days[k];
       ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>
         (d[c].assign[j.id]||[]).forEach(s=>{ if(s&&s.p===p.id)
-          out.push({k,c,job:j.label,note:s.note||"",pm:s.pm||""}); })));
+          out.push({k,c,job:j.label,note:s.note||"",note2:s.note2||"",pm:s.pm||""}); })));
       const a=(d.away||{})[p.id];
       if(a) out.push({k,c:"—",job:a.type==="timeoff"?("Time off"+(a.by?" — covered by "+((person(a.by)||{}).name||""):""))
-        :a.by?"Shift covered by "+((person(a.by)||{}).name||""):"Called in",note:"",pm:"",away:true});
+        :a.by?"Shift covered by "+((person(a.by)||{}).name||""):"Called in",note:"",note2:"",pm:"",away:true});
     });
-    hist=out.length?`<table class="log"><thead><tr><th>Date</th><th>Course</th><th>Job</th><th>Second job</th><th>PM job</th></tr></thead>
+    hist=out.length?`<table class="log"><thead><tr><th>Date</th><th>Course</th><th>Job</th><th>First job</th><th>Second job</th><th>PM job</th></tr></thead>
       <tbody>${out.slice(0,120).map(r=>`<tr><td class="d">${r.k}</td><td>${r.c==="—"?"—":COURSE[r.c]}</td>
         <td${r.away?' style="color:var(--out)"':""}>${esc(r.job)}</td><td>${esc(r.note)}</td>
+        <td style="color:var(--sand)">${esc(r.note2)}</td>
         <td style="color:var(--pm)">${esc(r.pm)}</td></tr>`).join("")}</tbody></table>`
       : `<p class="help">Nothing on the board for them yet.</p>`;
   }
@@ -1446,6 +1471,9 @@ function renderSetup(){
           <option value="open" ${j.type==="open"?"selected":""}>Free text</option></select>
         <select data-jr="${c}|${j.id}" ${j.type==="open"?"disabled":""}><option value="">no training needed</option>
           ${state.machines.map(m=>`<option ${j.req===m?"selected":""}>${esc(m)}</option>`).join("")}</select>
+        <input type="text" data-jo="${c}|${j.id}" value="${esc((j.opts||[]).join(", "))}" style="width:178px"
+          placeholder="first-job choices…" title="Choices for the First job box, separated by commas — e.g. Triplex, Walker"
+          ${j.type==="open"?"disabled":""}>
         <input type="text" data-js="${c}|${j.id}" value="${j.slots}" style="width:50px" title="Rows">
         <button class="del" data-jd="${c}|${j.id}">✕</button></div>`).join("")}
       <div class="rowline"><input type="text" id="newJob-${c}" placeholder="Add a row…" style="width:190px">
@@ -1526,6 +1554,8 @@ for each row execute function touch_board();</div>
     state.training[p.id]={}; state.machines.forEach(m=>state.training[p.id][m]=(state.basics||[]).includes(m));
     state.people.push(p); save(); renderSetup(); };
   el.querySelectorAll("[data-jl]").forEach(i=>i.oninput=()=>{ jobOf(i.dataset.jl).label=i.value; save(); });
+  el.querySelectorAll("[data-jo]").forEach(i=>i.oninput=()=>{
+    jobOf(i.dataset.jo).opts=i.value.split(",").map(x=>x.trim()).filter(Boolean); save(); });
   el.querySelectorAll("[data-jt]").forEach(s=>s.onchange=()=>{
     const j=jobOf(s.dataset.jt); j.type=s.value; if(j.type==="open") j.req=null; save(); renderSetup(); });
   el.querySelectorAll("[data-jr]").forEach(s=>s.onchange=()=>{ jobOf(s.dataset.jr).req=s.value||null; save(); });
@@ -1837,6 +1867,13 @@ document.addEventListener("keydown",e=>{
     state.basics=BASICS.filter(m=>state.machines.includes(m));
     state.jobs=freshJobs();
     save();
+  }
+  if(state.schemaV===4){
+    /* v4 → v5: the column beside each name is the FIRST job (Triplex, Walker, 3100…),
+       so each row can now carry its usual choices. Everything else is untouched. */
+    ["talons","ridge"].forEach(c=>(state.jobs[c]||[]).forEach(j=>{
+      if(!j.opts) j.opts=(JOBOPTS[j.label]||[]).slice(); }));
+    state.schemaV=5; save();
   }
   state.basics=state.basics||[];
   /* upgrade older saved boards to the full supervisor list */
