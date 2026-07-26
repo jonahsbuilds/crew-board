@@ -435,10 +435,34 @@ const store={
     try{ return localStorage.getItem(k); }catch(e){ return mem[k]??null; }
   },
   async set(k,v){
-    if(window.storage){ try{ await window.storage.set(k,v); return; }catch(e){} }
-    try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; }
+    if(window.storage){ try{ await window.storage.set(k,v); return true; }catch(e){} }
+    try{ localStorage.setItem(k,v); return true; }catch(e){ mem[k]=v; return false; }
   }
 };
+
+/* If this computer's storage ever fills (several seasons in), keep the recent days
+   here and let the older ones live on the shared board. Nothing is deleted there. */
+let diskWarned=false;
+const KEEP_DAYS=220;
+async function diskFull(){
+  const shared=!!(state.sync&&state.sync.url&&state.sync.key);
+  const keys=Object.keys(state.days).sort();
+  if(shared&&keys.length>KEEP_DAYS){
+    const drop=keys.slice(0,keys.length-KEEP_DAYS);
+    drop.forEach(k=>delete state.days[k]);
+    if(await store.set("chgc-board",JSON.stringify(state))){
+      if(!diskWarned){ diskWarned=true;
+        alert(`This computer ran out of room, so the oldest ${drop.length} days were cleared off it.\n\n`+
+          `They're all still on the shared board and on the other computers — nothing was lost.`); }
+      return;
+    }
+  }
+  if(!diskWarned){ diskWarned=true;
+    alert("This computer has run out of storage room, so changes can't be saved on it right now."+
+      (shared?"\n\nThey are still going to the shared board, so nothing is lost."
+             :"\n\nOpen Setup and download a backup now, then connect the shared board."));
+  }
+}
 
 /* ══ crew schedule, read straight off the 2026 summer workbook ══ */
 const SCHED={
@@ -1817,7 +1841,10 @@ function refresh(){
 let saveTimer=null;
 function save(){
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>{ saveTimer=null; store.set("chgc-board",JSON.stringify(state)); pushDirty(); },250);
+  saveTimer=setTimeout(async ()=>{ saveTimer=null;
+    const wrote=await store.set("chgc-board",JSON.stringify(state));
+    if(!wrote) await diskFull();
+    pushDirty(); },250);
 }
 /* flush a pending save when the window closes */
 window.addEventListener("beforeunload",()=>{
