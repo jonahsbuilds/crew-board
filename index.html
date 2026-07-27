@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0E141A">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="country-hills-logo.png">
@@ -1351,7 +1352,10 @@ async function fileRows(inputId){
   return rows;
 }
 function applyTrainingRows(rows){
-  const machines=(rows[0]||[]).slice(1).map(h=>String(h||"").trim()).filter(Boolean);
+  /* a real sheet can list the same machine twice, or leave a blank column —
+     keep one column per name and count a Y in any of them */
+  const raw=(rows[0]||[]).slice(1).map(h=>String(h||"").trim());
+  const machines=[]; raw.forEach(h=>{ if(h&&machines.indexOf(h)<0) machines.push(h); });
   if(!machines.length) return "No machine names found in row 1.";
   const body=rows.slice(1).map(r=>({name:String(r[0]||"").trim(),r})).filter(x=>x.name);
   /* names in the sheet that aren't on the crew list — usually people who don't work here anymore */
@@ -1368,8 +1372,9 @@ function applyTrainingRows(rows){
       p={id:uid(),name,crew:null,days:[1,2,3,4,5],hours:8}; state.people.push(p); added++; }
     else matched++;
     state.training[p.id]={};
-    machines.forEach((m,i)=>{ const v=String(r[i+1]||"").trim().toUpperCase();
-      state.training[p.id][m]=(v==="Y"||v==="YES"||v==="X"||v==="TRUE"||v==="1"); });
+    machines.forEach(m=>state.training[p.id][m]=false);
+    raw.forEach((h,i)=>{ if(!h) return; const v=String(r[i+1]||"").trim().toUpperCase();
+      if(v==="Y"||v==="YES"||v==="X"||v==="TRUE"||v==="1") state.training[p.id][h]=true; });
   });
   state.trainingIsSample=false; save();
   const notInSheet=state.people.filter(p=>!body.find(x=>norm(x.name)===norm(p.name))).map(p=>p.name);
@@ -1520,30 +1525,7 @@ function renderSetup(){
         <input type="text" id="syncWho" placeholder="Your name" style="width:150px" value="${esc((state.sync||{}).who||"")}">
         <button class="btn go" id="syncSave">Connect</button>
         ${(state.sync||{}).url?`<button class="btn" id="syncOff">Disconnect</button>`:""}
-      </div>
-      <details><summary>One-time setup</summary>
-      <p class="help" style="margin:10px 0 8px">Make a free project at supabase.com, run this in its
-        SQL editor, then paste the project URL and the publishable key above on each computer.</p>
-      <div class="sql">create table board (
-  id          text primary key,
-  data        jsonb not null,
-  updated_at  timestamptz not null default now(),
-  updated_by  text
-);
-
-alter table board enable row level security;
-create policy shop_access on board for all using (true) with check (true);
-
-grant usage on schema public to anon, authenticated;
-grant select, insert, update, delete on table public.board to anon, authenticated;
-
-create or replace function touch_board() returns trigger as $$
-begin new.updated_at = now(); return new; end $$ language plpgsql;
-
-create trigger board_touch before insert or update on board
-for each row execute function touch_board();</div>
-      <p class="help" style="margin:0">Anyone with the key can edit the board, same as the Google Doc now.</p>
-      </details></div>
+      </div></div>
 
     <div class="card"><h4>Backup</h4>
       <p class="help">The backup file holds every saved day and every setting. Take one at the end of
@@ -1702,6 +1684,8 @@ function jobOf(k){ const [c,id]=k.split("|"); return state.jobs[c].find(j=>j.id=
    record, so different days never overwrite each other. */
 const CFG_KEYS=["machines","people","supervisors","training","trainingIsSample","schedule","times","jobs"];
 let lastSent={}, lastPull="1970-01-01T00:00:00Z", syncState="off", syncSeen=null, pullTimer=null, applyQueued=false;
+/* have we actually checked the shared board yet, and did it hold a real roster? */
+let pulledOnce=false, serverHasRoster=false;
 
 const syncOn=()=>!!(state&&state.sync&&state.sync.url&&state.sync.key);
 const configPart=()=>Object.fromEntries(CFG_KEYS.map(k=>[k,state[k]]));
@@ -1729,9 +1713,10 @@ async function pushDirty(){
   if(!syncOn()) return;
   const recs=[], who=(state.sync.who||"").trim()||"unknown";
   const cfg=JSON.stringify(configPart());
-  /* a board with zero people (a fresh hosted copy) has nothing worth sharing —
-     never let it overwrite the real roster on the server */
-  if(state.people.length&&lastSent.config!==cfg) recs.push({id:"config",data:JSON.parse(cfg),updated_by:who});
+  /* an empty copy must never overwrite a real roster on the server. But once we've
+     looked and the shared board is empty too, this device is free to set things up. */
+  if((state.people.length||(pulledOnce&&!serverHasRoster))&&lastSent.config!==cfg)
+    recs.push({id:"config",data:JSON.parse(cfg),updated_by:who});
   Object.keys(state.days).forEach(k=>{
     const str=JSON.stringify(state.days[k]);
     if(lastSent["day:"+k]!==str) recs.push({id:"day:"+k,data:state.days[k],updated_by:who});
@@ -1751,7 +1736,7 @@ async function pullChanges(){
     const r=await fetch(api("board?select=id,data,updated_at&updated_at=gt."+encodeURIComponent(lastPull)),{headers:heads()});
     if(!r.ok) throw new Error(await r.text());
     const rows=await r.json();
-    syncSeen=Date.now(); setSync("ok");
+    syncSeen=Date.now(); setSync("ok"); pulledOnce=true;
     let changed=false;
     rows.forEach(row=>{
       if(row.updated_at>lastPull) lastPull=row.updated_at;
@@ -1759,6 +1744,7 @@ async function pullChanges(){
       if(lastSent[row.id]===str) return;              // our own echo
       if(row.id==="config"){
         const inc=row.data;
+        if(inc.people&&inc.people.length) serverHasRoster=true;
         if((!inc.people||!inc.people.length)&&state.people.length){ delete inc.people; delete inc.training; }
         Object.assign(state,inc);
       }
