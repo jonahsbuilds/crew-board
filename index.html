@@ -62,6 +62,9 @@
   .icb{background:none;border:1px solid transparent;border-radius:4px;color:var(--mute);padding:4px 9px;font-size:17px;line-height:1}
   .icb:hover{color:var(--chalk);border-color:var(--line)}
   .crews{display:flex;align-items:center;gap:5px}
+  .schedwarn{margin:0 22px 10px;padding:9px 13px;border:1px solid var(--sand);border-radius:7px;
+    background:rgba(221,178,104,.10);color:var(--sand);font-size:13px;line-height:1.45}
+  .schedwarn b{font-weight:600}
   .crewbtn{font-family:var(--mono);font-size:11px;border:1px solid var(--line);background:var(--night);color:var(--dim);border-radius:4px;padding:5px 10px}
   .crewbtn[data-on="1"]{background:var(--turf);border-color:var(--turf);color:#0B1116;font-weight:600}
   .headcount{font-family:var(--mono);font-size:11px;color:var(--mute);letter-spacing:.04em;white-space:nowrap}
@@ -111,6 +114,31 @@
   .tod[data-st=booked]{border-color:var(--turf);color:var(--turf);background:rgba(111,174,106,.14);font-weight:600}
   .tod:not([disabled]):hover{border-color:var(--line2)}
   .jgrip{cursor:grab;color:var(--dim);user-select:none;font-size:12px;padding:0 1px}
+  /* employee profile */
+  .phead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:4px}
+  .phead h4{margin:0;font-size:23px;letter-spacing:.05em}
+  .phead .meta{font-family:var(--mono);font-size:11px;color:var(--mute);letter-spacing:.05em}
+  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:9px;margin:12px 0 4px}
+  .stat{background:var(--night);border:1px solid var(--line);border-radius:7px;padding:9px 11px}
+  .stat b{display:block;font-family:var(--display);font-size:24px;line-height:1.1;font-weight:600}
+  .stat s{display:block;text-decoration:none;font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--dim);margin-top:3px}
+  .stat.warn b{color:var(--out)} .stat.gold b{color:var(--sand)}
+  .subtabs{display:flex;gap:6px;margin:14px 0 10px;flex-wrap:wrap}
+  .subtabs button{background:none;border:1px solid var(--line);color:var(--mute);border-radius:999px;
+    padding:5px 13px;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+  .subtabs button[aria-pressed=true]{border-color:var(--line2);color:var(--chalk);background:var(--night)}
+  .trow{display:grid;grid-template-columns:minmax(0,1.4fr) 74px minmax(0,1fr) minmax(0,1fr) auto;
+    gap:9px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}
+  .trow:last-child{border-bottom:0}
+  .trow .mname{font-size:13.5px}
+  .trow .ago{font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .trow .ago.stale{color:var(--sand)}
+  .trow .never{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--out)}
+  .trow input[type=date],.trow input.by{background:var(--panel);border:1px solid var(--line);border-radius:5px;
+    color:var(--chalk);padding:4px 7px;font-size:12px;width:100%;min-width:0}
+  .trow.off .mname{color:var(--mute)}
+  @media (max-width:800px){ .trow{grid-template-columns:1fr auto;gap:5px} .trow .ago,.trow .never{grid-column:1/-1} }
   .jmv{font-size:9px;flex:none}
   .cutf.note{flex:1;min-width:220px}
   .cutf.note input{background:var(--panel);border:1px solid var(--line);border-radius:5px;color:var(--sand);padding:5px 9px;font-size:13px;width:100%}
@@ -315,6 +343,7 @@
   body.tv .tt{font-size:26px;border:0;background:none;width:auto;padding:0}
   body.tv .field select{border:0;background:none;font-family:var(--display);font-size:26px;padding:0;appearance:none;-webkit-appearance:none}
   body.tv .notes{border:0;font-size:19px;color:var(--sand);padding-left:0}
+  body.tv .schedwarn{display:none}
   body.tv .cutf select{pointer-events:none;border-color:transparent;background:none;appearance:none;-webkit-appearance:none;
     font-family:var(--display);font-size:20px;font-weight:600;letter-spacing:.03em;padding:1px 0;color:var(--chalk)}
   body.tv .cutf.note input{pointer-events:none;border-color:transparent;background:none;font-size:18px;font-weight:600}
@@ -381,12 +410,14 @@
   <div class="vr"></div>
   <div class="crews" id="crewToggles"></div>
   <div class="headcount" id="headcount"></div>
+  <div class="schedwarn" id="schedWarn" hidden></div>
   <div class="spacer"></div>
   <button class="syncpill" id="syncPill" title="Where this board is saved"></button>
   <div class="tabs" role="tablist">
     <button role="tab" data-view="board" aria-selected="true">Board</button>
     <button role="tab" data-view="history" aria-selected="false">History</button>
     <button role="tab" data-view="training" aria-selected="false">Training</button>
+    <button role="tab" data-view="people" aria-selected="false">People</button>
     <button role="tab" data-view="timeoff" aria-selected="false">Time off</button>
     <button role="tab" data-view="setup" aria-selected="false">Setup</button>
   </div>
@@ -416,6 +447,7 @@
 
 <div id="viewHistory" class="pane" hidden></div>
 <div id="viewTraining" class="pane" hidden></div>
+<div id="viewPeople" class="pane" hidden></div>
 <div id="viewTimeoff" class="pane" hidden></div>
 <div id="viewSetup" class="pane" hidden></div>
 <div id="modalRoot"></div>
@@ -550,6 +582,7 @@ function todayKey(){ const p=mtParts(); return p.y+"-"+pad(p.m)+"-"+pad(p.d); }
 let state=null, view="board", dateKey=todayKey(), preview="live", calMonth=null, logPerson="";
 let logQ="", trainQ="", trainCrew="", setupQ="", setupCrew="", statSort="name";
 let toQ="", toPerson="", toMonth="", toSel={};
+let ppQ="", ppPerson="", ppMonth="", ppTab="training";
 
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
@@ -558,8 +591,8 @@ const byName=(a,b)=>a.name.localeCompare(b.name);
 const crewMatch=(p,c)=>!c||(c==="none"?!p.crew:p.crew===c);
 function crewOpts(cur){
   const cnt=c=>state.people.filter(p=>c==="none"?!p.crew:p.crew===c).length;
-  return `<option value="">All crews</option>`+["1","2","3"].map(c=>
-    `<option value="${c}" ${cur===c?"selected":""}>Crew ${c} · ${cnt(c)}</option>`).join("")+
+  return `<option value="">All crews</option>`+CREWS.map(c=>
+    `<option value="${c}" ${cur===c?"selected":""}>${crewLabel(c)} · ${cnt(c)}</option>`).join("")+
     `<option value="none" ${cur==="none"?"selected":""}>No crew · ${cnt("none")}</option>`;
 }
 function refocus(sel,pos){ const f=document.querySelector(sel);
@@ -574,33 +607,70 @@ function freshState(){
     times:{start:"05:30",half:"09:30",pm:"10:30",end:"14:00"},
     jobs:freshJobs(),
     days:{}};
-  ["1","2","3"].forEach(c=>CREW[c].forEach(n=>s.people.push({id:uid(),name:n,crew:c,days:[1,2,3,4,5],hours:8})));
+  ["1","2","3"].forEach(c=>(CREW[c]||[]).forEach(n=>s.people.push({id:uid(),name:n,crew:c,days:[1,2,3,4,5],hours:8})));
   OFFCREW.forEach(p=>s.people.push({id:uid(),name:p.name,crew:null,days:p.days,hours:8}));
   s.people.forEach(p=>{ s.training[p.id]={}; s.machines.forEach(m=>s.training[p.id][m]=true); });
   return s;
 }
 const defaultCut=()=>({greens:"10 to 4",clean:"clockwise",fairways:"left to right",m3100:"clockwise",primary:"clockwise"});
-const blankDay=()=>({away:{},extra:{},late:{},half:{},supsIn:[],note:"",cut:defaultCut(),
+const blankDay=()=>({away:{},extra:{},late:{},half:{},early:{},supsIn:[],note:"",cut:defaultCut(),
   talons:{supervisor:"",tee:"",notes:"",assign:{}},ridge:{supervisor:"",tee:"",notes:"",assign:{}}});
 function day(k){ k=k||dateKey; if(!state.days[k]) state.days[k]=blankDay();
-  const d=state.days[k]; d.late=d.late||{}; d.half=d.half||{}; d.supsIn=d.supsIn||[]; d.note=d.note??""; d.cut=d.cut||defaultCut(); return d; }
+  const d=state.days[k]; d.late=d.late||{}; d.half=d.half||{}; d.early=d.early||{}; d.supsIn=d.supsIn||[]; d.note=d.note??""; d.cut=d.cut||defaultCut(); return d; }
 const person=id=>state.people.find(p=>p.id===id);
 /* red-name rules: permanently 5-hour, or an 8-hour person taking a half day just today */
-const isHalfToday=pid=>{ const p=person(pid); return !!p&&(p.hours===5||!!(day().half||{})[pid]); };
+const isHalfToday=pid=>{ const p=person(pid), d=day();
+  return !!p&&(p.hours===5||!!(d.half||{})[pid]||!!(d.early||{})[pid]); };
 
 /* ══ who's in ══ */
-const crewsOn=k=>state.schedule[k||dateKey]||[];
+const CREWS=["1","2","3","MF"];
+const crewLabel=c=>c==="MF"?"Mon\u2013Fri":"Crew "+c;
+/* Crew MF works every weekday; 1/2/3 follow the rotating schedule. */
+const crewWorksOn=(c,k)=>c==="MF"?[1,2,3,4,5].includes(dow(k)):(state.schedule[k]||[]).includes(c);
+const crewsOn=k=>{ k=k||dateKey;
+  const out=(state.schedule[k]||[]).slice();
+  if(state.people.some(p=>p.crew==="MF")&&crewWorksOn("MF",k)) out.push("MF");
+  return out; };
+/* A person works a day if: their crew is on, or their own custom calendar says so,
+   or (no crew, no custom) their weekday buttons include it. */
+function worksOn(p,k){
+  if(!p) return false;
+  if(p.crew) return crewWorksOn(p.crew,k);
+  if(p.custom&&Object.keys(p.custom).length) return !!p.custom[k];
+  return (p.days||[]).includes(dow(k));
+}
 function scheduledToday(k){
   k=k||dateKey;
-  const on=crewsOn(k), wd=dow(k), d=day(k), seen=new Set(), out=[];
+  const d=day(k), seen=new Set(), out=[];
   const push=p=>{ if(p&&!seen.has(p.id)){ seen.add(p.id); out.push(p); } };
-  state.people.forEach(p=>{ if(p.crew?on.includes(p.crew):(p.days||[]).includes(wd)) push(p); });
+  state.people.forEach(p=>{ if(worksOn(p,k)) push(p); });
   Object.keys(d.extra||{}).forEach(id=>push(person(id)));
   Object.values(d.away||{}).forEach(a=>{ if(a.by) push(person(a.by)); });
   return out;
 }
 function rosterToday(k){ k=k||dateKey; const a=day(k).away||{}; return scheduledToday(k).filter(p=>!a[p.id]).sort(byName); }
-const isTrained=(pid,m)=>!m||!!(state.training[pid]&&state.training[pid][m]);
+/* A training record is either an old-style true/false, or {on,date,by} once a
+   manager ticks it here — so we can show when someone was signed off and by who. */
+const trainRec=(pid,m)=>{ const t=state.training[pid]; if(!t) return null;
+  const v=t[m]; if(v===undefined||v===null) return null;
+  return (typeof v==="object")?v:{on:!!v,date:"",by:""}; };
+const isTrained=(pid,m)=>{ if(!m) return true; const r=trainRec(pid,m); return !!(r&&r.on); };
+const setTrained=(pid,m,on,extra)=>{
+  state.training[pid]=state.training[pid]||{};
+  const old=trainRec(pid,m)||{on:false,date:"",by:""};
+  const who=((state.sync||{}).who||"").trim();
+  state.training[pid][m]= on
+    ? {on:true, date:(extra&&extra.date!==undefined)?extra.date:(old.date||todayKey()),
+       by:(extra&&extra.by!==undefined)?extra.by:(old.by||who)}
+    : {on:false, date:(extra&&extra.date!==undefined)?extra.date:(old.date||""),
+       by:(extra&&extra.by!==undefined)?extra.by:(old.by||"")};
+};
+const daysAgo=k=>{ if(!k) return null;
+  return Math.round((new Date(todayKey()+"T00:00:00")-new Date(k+"T00:00:00"))/86400000); };
+const agoText=k=>{ const n=daysAgo(k); if(n===null) return "";
+  if(n<=0) return "today"; if(n===1) return "yesterday";
+  if(n<30) return n+" days ago"; if(n<365) return Math.round(n/30)+" months ago";
+  const y=(n/365); return (y<1.5?"a year":Math.round(y)+" years")+" ago"; };
 
 function assignedElsewhere(pid,exceptKey){
   const d=day(),hits=[];
@@ -709,7 +779,7 @@ function renderBoard(){
     ? away.map(([id,a])=>{ const p=person(id); if(!p) return "";
         const by=a.by?person(a.by):null;
         return `<button class="chipn away" data-who="${id}" title="Click to undo">
-          <s>${esc(p.name)}</s>${by?`<em>← ${esc(by.name)}</em>`:`<em>${a.type==="timeoff"?"TIME OFF":a.type==="covered"?"COVERED":"CALLED IN"}</em>`}</button>`;
+          <s>${esc(p.name)}</s>${by?`<em>← ${esc(by.name)}</em>`:`<em>${a.type==="timeoff"?"TIME OFF":a.type==="covered"?"COVERED":a.type==="noshow"?"NO SHOW":"CALLED IN"}</em>`}</button>`;
       }).join("")
     : `<span class="empty-note">Nobody away. Click any name to mark a call-in or a shift swap, even on a future date.</span>`;
 
@@ -721,7 +791,7 @@ function renderBoard(){
 
   renderCut(); wireBoard(); applyPhase(); fitTV(); buildPrintHead();
 }
-const chip=(p,cls)=>`<button class="chipn ${cls}" data-who="${p.id}">${esc(p.name)}${p.hours===5?`<em>5H</em>`:(day().half||{})[p.id]?`<em class="late">½ DAY</em>`:""}${(day().late||{})[p.id]?`<em class="late">LATE</em>`:""}</button>`;
+const chip=(p,cls)=>`<button class="chipn ${cls}" data-who="${p.id}">${esc(p.name)}${p.hours===5?`<em>5H</em>`:""}${(day().late||{})[p.id]?`<em class="late">LATE</em>`:""}${((day().early||{})[p.id]||(day().half||{})[p.id])?`<em class="late">LEFT EARLY</em>`:""}</button>`;
 
 function courseHTML(c,d,roster){
   const cd=d[c];
@@ -761,7 +831,7 @@ function slotHTML(c,job,i,s,roster){
     late?`<span class="flag late">Late</span>`:"",
     override?`<span class="flag train">Training</span>`:"",
     dup.length?`<span class="flag dup">Double-booked</span>`:"",
-    aw?(aw.by?`<span class="flag cover">Covered by ${esc((person(aw.by)||{}).name||"")}</span>`:`<span class="flag gone">${aw.type==="timeoff"?"Time off":"Called in"}</span>`):""].join("");
+    aw?(aw.by?`<span class="flag cover">Covered by ${esc((person(aw.by)||{}).name||"")}</span>`:`<span class="flag gone">${aw.type==="timeoff"?"Time off":aw.type==="noshow"?"No show":"Called in"}</span>`):""].join("");
   return `<div class="slot">
     <div class="namecell">
       <button class="pick ${pick?"":"empty"} ${override?"override":""} ${half?"five":""}"
@@ -997,14 +1067,15 @@ function openWho(id){
   const root=document.getElementById("modalRoot");
   root.innerHTML=`<div class="veil" id="veil"><div class="modal">
     <h5>${esc(p.name)}</h5><p class="sub">${esc(dt)}</p>
-    ${aw?`<button class="opt" id="undo"><b>Put back in</b><span>Clears the ${aw.type==="covered"?"shift swap":aw.type==="timeoff"?"time off":"call-in"} for this day.</span></button>`:`
-      ${p.hours===5?"":`<button class="opt" id="optHalf"><b>${(d.half||{})[id]?"Back to a full day":"Half day today"}</b><span>${(d.half||{})[id]?"They're staying the whole shift after all.":"Name goes red after "+state.times.half.replace(/^0/,"")+" and PM jobs grey out — just for this day."}</span></button>`}
+    ${aw?`<button class="opt" id="undo"><b>Put back in</b><span>Clears the ${aw.type==="covered"?"shift swap":aw.type==="timeoff"?"time off":aw.type==="noshow"?"no show":"call-in"} for this day.</span></button>`:`
       <button class="opt" id="optLate"><b>${(d.late||{})[id]?"Remove the late mark":"Mark late"}</b><span>${(d.late||{})[id]?"On time after all — takes it off their stats.":"Goes on their season stats. They stay on the board."}</span></button>
-      <button class="opt" id="optCall"><b>Called in</b><span>Off the board for this day, out of every dropdown.</span></button>
+      <button class="opt" id="optEarly"><b>${(d.early||{})[id]||(d.half||{})[id]?"Stayed the whole day after all":"Going home early"}</b><span>${(d.early||{})[id]||(d.half||{})[id]?"Takes it off their season stats.":"Leaving at lunch instead of the full shift \u2014 name goes red after "+state.times.half.replace(/^0/,"")+", PM jobs grey out, and it's tracked."}</span></button>
+      <button class="opt" id="optCall"><b>Called in</b><span>Phoned ahead. Off the board for this day, out of every dropdown.</span></button>
+      <button class="opt" id="optNo"><b>No show</b><span>Didn't turn up and didn't call. Off the board, tracked separately from call-ins.</span></button>
       <button class="opt" id="optCover"><b>Shift taken by someone else</b><span>Pick who's covering — they get added to the day.</span></button>
       <div id="coverBox" hidden>
         <select id="coverWho"><option value="">Who's covering…</option>
-          ${others.map(o=>`<option value="${o.id}">${esc(o.name)}${o.crew?" · Crew "+o.crew:""}</option>`).join("")}</select>
+          ${others.map(o=>`<option value="${o.id}">${esc(o.name)}${o.crew?" · "+crewLabel(o.crew):""}</option>`).join("")}</select>
         <label class="chk"><input type="checkbox" id="giveJobs" checked> Give them the same jobs</label>
         <div class="foot"><button class="btn" id="cancel2">Cancel</button><button class="btn go" id="saveCover">Save swap</button></div>
       </div>`}
@@ -1015,10 +1086,14 @@ function openWho(id){
   document.getElementById("cancel").onclick=close;
   const undo=document.getElementById("undo");
   if(undo) undo.onclick=()=>{ delete d.away[id]; save(); close(); refresh(); };
-  const oh=document.getElementById("optHalf");
-  if(oh) oh.onclick=()=>{ d.half=d.half||{}; if(d.half[id]) delete d.half[id]; else d.half[id]=true; save(); close(); refresh(); };
   const ol=document.getElementById("optLate");
   if(ol) ol.onclick=()=>{ d.late=d.late||{}; if(d.late[id]) delete d.late[id]; else d.late[id]=true; save(); close(); refresh(); };
+  const oe=document.getElementById("optEarly");
+  if(oe) oe.onclick=()=>{ d.early=d.early||{}; d.half=d.half||{};
+    if(d.early[id]||d.half[id]){ delete d.early[id]; delete d.half[id]; } else d.early[id]=true;
+    save(); close(); refresh(); };
+  const onS=document.getElementById("optNo");
+  if(onS) onS.onclick=()=>{ d.away=d.away||{}; d.away[id]={type:"noshow",by:null}; save(); close(); refresh(); };
   const oc=document.getElementById("optCall");
   if(oc) oc.onclick=()=>{ d.away=d.away||{}; d.away[id]={type:"called-in",by:null}; save(); close(); refresh(); };
   const ov=document.getElementById("optCover");
@@ -1044,7 +1119,7 @@ function openWho(id){
    own cover. Writes the same per-day away records the board already syncs.
    Time off is its own type: it never counts as a call-in on the stats. */
 const fmtD=k=>new Date(k+"T00:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric"});
-const scheduledOn=(p,k)=>p.crew?(state.schedule[k]||[]).includes(p.crew):(p.days||[]).includes(dow(k));
+const scheduledOn=(p,k)=>worksOn(p,k);
 function reassignDay(d,fromId,toId){
   ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>
     (d[c].assign[j.id]||[]).forEach(s=>{ if(s&&s.p===fromId) s.p=toId; })));
@@ -1090,7 +1165,7 @@ function renderTimeoff(){
   const selKeys=Object.keys(toSel).sort();
   const others=p?state.people.filter(x=>x.id!==p.id).sort(byName):[];
   const coverOpts=cur=>`<option value="">Nobody — jobs stay open</option>`+others.map(o=>
-    `<option value="${o.id}" ${cur===o.id?"selected":""}>${esc(o.name)}${o.crew?" · Crew "+o.crew:""}</option>`).join("");
+    `<option value="${o.id}" ${cur===o.id?"selected":""}>${esc(o.name)}${o.crew?" · "+crewLabel(o.crew):""}</option>`).join("");
   const bookedDays=p?Object.keys(state.days).sort().filter(k=>k>=today
     &&state.days[k].away&&state.days[k].away[p.id]&&state.days[k].away[p.id].type==="timeoff")
     .map(k=>({k,by:state.days[k].away[p.id].by})):[];
@@ -1171,6 +1246,385 @@ function renderTimeoff(){
     renderTimeoff(); });
 }
 
+/* Two managers each importing their own copy of the crew list is the likeliest
+   way this board gets messy, so watch for the same person listed twice. */
+/* norm() strips spaces, so use a word-aware split for name comparisons */
+const nameWords=n=>String(n).toLowerCase().replace(/[^a-z\s]/g," ").split(/\s+/).filter(Boolean);
+const firstOf=n=>nameWords(n)[0]||"";
+const lastOf=n=>{ const p=nameWords(n); return p.length>1?p[p.length-1]:""; };
+function findDupes(){
+  const out=[], used=new Set(), people=state.people;
+  for(let i=0;i<people.length;i++){
+    if(used.has(people[i].id)) continue;
+    const grp=[people[i]];
+    for(let j=i+1;j<people.length;j++){
+      if(used.has(people[j].id)) continue;
+      const a=people[i], b=people[j];
+      if(a.dupOk&&b.dupOk) continue;
+      const na=norm(a.name), nb=norm(b.name);
+      const la=lastOf(a.name), lb=lastOf(b.name), sameLast=!!la&&la===lb;
+      const fa=firstOf(a.name), fb=firstOf(b.name);
+      const firstish=!!fa&&!!fb&&(fa===fb||fa.startsWith(fb)||fb.startsWith(fa)||(sameLast&&fa[0]===fb[0]));
+      const contained=!!na&&!!nb&&na!==nb&&(na.includes(nb)||nb.includes(na));
+      if(na===nb||(sameLast&&firstish)||contained){ grp.push(b); used.add(b.id); }
+    }
+    if(grp.length>1){ used.add(people[i].id); out.push(grp); }
+  }
+  return out;
+}
+function mergePeople(keepId,dropId){
+  const keep=person(keepId), drop=person(dropId);
+  if(!keep||!drop||keep.id===drop.id) return;
+  keep.crew=keep.crew||drop.crew;
+  if(drop.hours===5) keep.hours=5;
+  keep.days=[...new Set([...(keep.days||[]),...(drop.days||[])])].sort();
+  if(drop.custom) keep.custom=Object.assign({},drop.custom,keep.custom||{});
+  const dt=state.training[drop.id]||{};
+  state.training[keep.id]=state.training[keep.id]||{};
+  const detail=v=>{ if(v===undefined||v===null) return -1;
+    if(typeof v!=="object") return 0;
+    return (v.date?1:0)+(v.by?1:0); };
+  Object.keys(dt).forEach(m=>{
+    const incoming=dt[m], cur=state.training[keep.id][m];
+    const incOn=(typeof incoming==="object")?!!incoming.on:!!incoming;
+    const curOn=(cur===undefined)?false:((typeof cur==="object")?!!cur.on:!!cur);
+    /* signed off on either side wins; between two sign-offs keep the one that
+       actually records who and when */
+    if(incOn&&!curOn) state.training[keep.id][m]=incoming;
+    else if(incOn&&curOn&&detail(incoming)>detail(cur)) state.training[keep.id][m]=incoming;
+    else if(cur===undefined) state.training[keep.id][m]=incoming;
+  });
+  delete state.training[drop.id];
+  Object.values(state.days).forEach(d=>{
+    ["talons","ridge"].forEach(c=>Object.values((d[c]||{}).assign||{}).forEach(a=>a.forEach(sl=>{
+      if(sl&&sl.p===drop.id) sl.p=keep.id; })));
+    ["away","extra","late","half","early"].forEach(key=>{
+      const box=d[key]; if(!box) return;
+      if(box[drop.id]!==undefined&&box[keep.id]===undefined) box[keep.id]=box[drop.id];
+      delete box[drop.id];
+    });
+    Object.values(d.away||{}).forEach(a=>{ if(a&&a.by===drop.id) a.by=keep.id; });
+  });
+  state.people=state.people.filter(p=>p.id!==drop.id);
+  save();
+}
+
+/* Ticking someone off on a machine — offer the detail, never demand it. */
+function askSignoff(pid,m,after){
+  const p=person(pid); if(!p) return;
+  const rec=trainRec(pid,m)||{date:todayKey(),by:""};
+  const who=((state.sync||{}).who||"").trim();
+  const root=document.getElementById("modalRoot");
+  root.innerHTML=`<div class="veil" id="veil"><div class="modal">
+    <h5>${esc(p.name)} \u2014 ${esc(m)}</h5>
+    <p class="sub">Signed off. Add who trained them and when, or skip it \u2014 either way it's recorded.</p>
+    <div class="rowline"><label class="cutf" style="flex:1"><s>Trained by</s>
+      <input type="text" id="sfBy" value="${esc(rec.by||who)}" placeholder="who signed them off"></label></div>
+    <div class="rowline"><label class="cutf" style="flex:1"><s>When</s>
+      <input type="date" id="sfDate" value="${esc(rec.date||todayKey())}"></label></div>
+    <div class="foot"><button class="btn" id="sfSkip">Skip</button><button class="btn go" id="sfSave">Save</button></div>
+  </div></div>`;
+  const close=()=>{ root.innerHTML=""; if(after) after(); };
+  document.getElementById("veil").onclick=e=>{ if(e.target.id==="veil") close(); };
+  document.getElementById("sfSkip").onclick=close;
+  document.getElementById("sfSave").onclick=()=>{
+    setTrained(pid,m,true,{by:document.getElementById("sfBy").value.trim(),
+      date:document.getElementById("sfDate").value||todayKey()});
+    save(); close();
+  };
+  const f=document.getElementById("sfBy"); if(f) f.focus();
+}
+
+/* ══ people — one employee at a time, so the detail has room to breathe ══ */
+function personStats(pid){
+  const s={days:0,late:0,early:0,call:0,no:0,cover:0,off:0};
+  Object.values(state.days).forEach(d=>{
+    let worked=false;
+    ["talons","ridge"].forEach(c=>Object.values(d[c].assign||{}).forEach(a=>a.forEach(sl=>{ if(sl&&sl.p===pid) worked=true; })));
+    if(worked) s.days++;
+    const a=(d.away||{})[pid];
+    if(a){ if(a.type==="timeoff") s.off++; else if(a.type==="noshow") s.no++; else if(a.by) s.cover++; else s.call++; }
+    if((d.late||{})[pid]) s.late++;
+    if((d.early||{})[pid]||(d.half||{})[pid]) s.early++;
+  });
+  return s;
+}
+/* every sign-off records who did it, so we can read it back the other way */
+function trainedByName(name){
+  const n=norm(name||""); if(!n) return [];
+  const out=[];
+  state.people.forEach(p=>state.machines.forEach(m=>{
+    const r=trainRec(p.id,m);
+    if(r&&r.on&&r.by&&norm(r.by)===n) out.push({pid:p.id,who:p.name,machine:m,date:r.date||""});
+  }));
+  return out.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+}
+function trainerTally(){
+  /* group on the normalised name so "Keith Richards" and "keith  richards" are
+     one person, then show whichever spelling was used most */
+  const map={};
+  state.people.forEach(p=>state.machines.forEach(m=>{
+    const r=trainRec(p.id,m);
+    if(!r||!r.on||!r.by) return;
+    const raw=r.by.trim(); if(!raw) return;
+    const k=norm(raw); if(!k) return;
+    const e=map[k]=map[k]||{n:0,people:new Set(),last:"",spellings:{}};
+    e.n++; e.people.add(p.id); if((r.date||"")>e.last) e.last=r.date||"";
+    e.spellings[raw]=(e.spellings[raw]||0)+1;
+  }));
+  return Object.values(map).map(v=>({
+    name:Object.entries(v.spellings).sort((a,b)=>b[1]-a[1]||b[0].length-a[0].length)[0][0],
+    n:v.n,people:v.people.size,last:v.last}))
+    .sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name));
+}
+function scheduleWord(p){
+  if(p.crew) return crewLabel(p.crew);
+  if(p.custom&&Object.keys(p.custom).length) return "own calendar";
+  const names=(p.days||[]).map(i=>DN[i]).join(" ");
+  return names||"no days set";
+}
+function renderPeople(){
+  const el=document.getElementById("viewPeople");
+  const p=ppPerson?person(ppPerson):null;
+  const hits=ppQ?state.people.filter(x=>matches(x.name,ppQ)).sort(byName).slice(0,16):[];
+  if(!ppMonth) ppMonth=dateKey.slice(0,7);
+
+  if(!p){
+    /* nobody picked yet — show the search plus the thing managers asked for:
+       who's been trained on the least, and which machines have the fewest people */
+    /* Days on record tells us who's new and who's been here a while; the newest
+       training date tells us who's been quietly left alone. */
+    const dayCount={}, lastTrain={};
+    state.people.forEach(x=>{ dayCount[x.id]=0;
+      let latest=""; state.machines.forEach(m=>{ const r=trainRec(x.id,m);
+        if(r&&r.on&&r.date&&r.date>latest) latest=r.date; });
+      lastTrain[x.id]=latest; });
+    Object.values(state.days).forEach(d=>["talons","ridge"].forEach(c=>
+      Object.values(d[c].assign||{}).forEach(a=>a.forEach(sl=>{ if(sl&&sl.p&&dayCount[sl.p]!==undefined) dayCount[sl.p]++; }))));
+    const snoozed=x=>x.trainSnooze&&x.trainSnooze>todayKey();
+    const NEWBIE=20;
+    const newFolk=state.people.filter(x=>!snoozed(x)&&dayCount[x.id]<NEWBIE)
+      .sort(()=>Math.random()-0.5).slice(0,4);
+    const veterans=state.people.filter(x=>!snoozed(x)&&dayCount[x.id]>=NEWBIE)
+      .map(x=>({x,last:lastTrain[x.id],n:state.machines.filter(m=>isTrained(x.id,m)).length}))
+      .filter(v=>!v.last||daysAgo(v.last)>120)
+      .sort((a,b)=>(a.last||"0")<(b.last||"0")?-1:1).slice(0,6);
+    const napping=state.people.filter(snoozed);
+    const thin=state.machines.map(m=>({m,n:state.people.filter(x=>isTrained(x.id,m)).length})).sort((a,b)=>a.n-b.n);
+    el.innerHTML=`<h3>People</h3>
+      <p class="help">Everything about one person in one place — their schedule, what they're signed off on,
+        who trained them, and how the season's gone.</p>
+      <div class="card"><h4>Find someone</h4>
+        <div class="rowline"><input type="text" id="ppQ" placeholder="Type a name…" style="width:240px" value="${esc(ppQ)}"></div>
+        <div class="names">${(ppQ?hits:state.people.slice().sort(byName)).map(x=>
+          `<button class="chipn" data-pp="${x.id}">${esc(x.name)}${x.crew?`<em>${x.crew==="MF"?"M-F":"C"+x.crew}</em>`:""}</button>`).join("")
+          ||`<span class="empty-note">Nobody on the crew list yet — import it in Setup.</span>`}</div></div>
+      ${state.machines.length?`
+      <div class="card"><h4>Newer people to get started</h4>
+        <p class="help">A few of the newer crew, picked at random \u2014 refresh the tab for a different handful.</p>
+        ${newFolk.length?newFolk.map(x=>`<div class="rowline"><button class="chipn" data-pp="${x.id}">${esc(x.name)}</button>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--mute)">${state.machines.filter(m=>isTrained(x.id,m)).length} of ${state.machines.length} machines · ${dayCount[x.id]} days in</span>
+          <button class="btn" data-snooze="${x.id}" title="Hide them from this list for two months">Not now</button></div>`).join("")
+          :`<p class="help" style="margin:0">Nobody new on the list right now.</p>`}</div>
+      <div class="card"><h4>Been a while since anyone trained them</h4>
+        <p class="help">People who've been here a while with no new sign-off in months \u2014 the ones easy to skip over by accident.</p>
+        ${veterans.length?veterans.map(v=>`<div class="rowline"><button class="chipn" data-pp="${v.x.id}">${esc(v.x.name)}</button>
+          <span style="font-family:var(--mono);font-size:12px;color:${v.last?"var(--sand)":"var(--out)"}">${v.last?"last trained "+agoText(v.last):"nothing on record"} · ${v.n} of ${state.machines.length} machines</span>
+          <button class="btn" data-snooze="${v.x.id}" title="Hide them from this list for two months">Not now</button></div>`).join("")
+          :`<p class="help" style="margin:0">Everyone's had something recently \u2014 nice.</p>`}</div>
+      ${(()=>{ const tt=trainerTally(); if(!tt.length) return "";
+        return `<div class="card"><h4>Who's been doing the training</h4>
+          <p class="help">Counted from the sign-offs on the Training tab. Supervisors show up here too, even if they're not on the crew list.</p>
+          ${tt.map(t=>{ const inCrew=state.people.find(x=>norm(x.name)===norm(t.name));
+            return `<div class="rowline">
+              ${inCrew?`<button class="chipn" data-pp="${inCrew.id}">${esc(t.name)}</button>`
+                     :`<span class="chipn" style="cursor:default">${esc(t.name)}</span>`}
+              <span style="font-family:var(--mono);font-size:12px;color:var(--mute)">${t.people} ${t.people===1?"person":"people"} · ${t.n} sign-off${t.n===1?"":"s"}${t.last?" · last "+agoText(t.last):""}</span>
+            </div>`; }).join("")}</div>`;
+      })()}
+      ${napping.length?`<div class="card"><h4>Set aside for now</h4>
+        <p class="help">Hidden from the lists above until the date shown.</p>
+        ${napping.map(x=>`<div class="rowline"><button class="chipn" data-pp="${x.id}">${esc(x.name)}</button>
+          <span style="font-family:var(--mono);font-size:12px;color:var(--dim)">until ${esc(x.trainSnooze)}</span>
+          <button class="btn" data-unsnooze="${x.id}">Put back</button></div>`).join("")}</div>`:""}
+      <div class="card"><h4>Thinnest coverage</h4>
+        <p class="help">Machines the fewest people can run — the ones worth training somebody on next.</p>
+        ${thin.slice(0,8).map(t=>`<div class="rowline"><span style="min-width:190px">${esc(t.m)}</span>
+          <span style="font-family:var(--mono);font-size:12px;color:${t.n<2?"var(--out)":t.n<4?"var(--sand)":"var(--mute)"}">${t.n} ${t.n===1?"person":"people"} signed off</span></div>`).join("")}</div>`:""}`;
+    const q=el.querySelector("#ppQ");
+    q.oninput=()=>{ const c=q.selectionStart; ppQ=q.value; renderPeople(); refocus("#ppQ",c); };
+    el.querySelectorAll("[data-pp]").forEach(b=>b.onclick=()=>{ ppPerson=b.dataset.pp; ppQ=""; renderPeople(); });
+    el.querySelectorAll("[data-snooze]").forEach(b=>b.onclick=()=>{
+      const x=person(b.dataset.snooze); if(!x) return;
+      const d=new Date(); d.setDate(d.getDate()+60);
+      x.trainSnooze=d.toISOString().slice(0,10); save(); renderPeople(); });
+    el.querySelectorAll("[data-unsnooze]").forEach(b=>b.onclick=()=>{
+      const x=person(b.dataset.unsnooze); if(x){ delete x.trainSnooze; save(); renderPeople(); } });
+    return;
+  }
+
+  const s=personStats(p.id);
+  const trained=state.machines.filter(m=>isTrained(p.id,m));
+  const taughtRows=trainedByName(p.name);
+  const taught={n:taughtRows.length,people:new Set(taughtRows.map(r=>r.pid)).size};
+  let body="";
+
+  if(ppTab==="training"){
+    const rows=state.machines.map(m=>{
+      const r=trainRec(p.id,m)||{on:false,date:"",by:""};
+      const ago=r.on&&r.date?agoText(r.date):"";
+      const stale=r.on&&r.date&&daysAgo(r.date)>365;
+      return `<div class="trow ${r.on?"":"off"}">
+        <span class="mname">${esc(m)}</span>
+        <label class="chk" style="margin:0"><input type="checkbox" data-tt="${esc(m)}" ${r.on?"checked":""}> <span style="font-size:11px">signed off</span></label>
+        ${r.on?`<input type="date" data-td="${esc(m)}" value="${esc(r.date||"")}" title="When they were signed off">
+              <input type="text" class="by" data-tb="${esc(m)}" value="${esc(r.by||"")}" placeholder="trained by…">
+              <span class="ago ${stale?"stale":""}">${esc(ago)}</span>`
+             :`<span></span><span></span><span class="never">NEVER</span>`}
+      </div>`; }).join("");
+    body=`<div class="card"><h4>Training</h4>
+      <p class="help">${trained.length} of ${state.machines.length} machines. Tick one and it fills in today's date and
+        your name automatically — change either if you're recording something from a while back.</p>
+      ${state.machines.length?rows:`<p class="help" style="margin:0">No machines yet — import the training sheet or add them on the Training tab.</p>`}</div>`;
+  }
+
+  if(ppTab==="taught"){
+    const byWho={};
+    taughtRows.forEach(r=>{ (byWho[r.pid]=byWho[r.pid]||{name:r.who,items:[]}).items.push(r); });
+    const groups=Object.values(byWho).sort((a,b)=>a.name.localeCompare(b.name));
+    body=`<div class="card"><h4>Trained others</h4>
+      <p class="help">${taught.n?`${esc(p.name)} has signed off ${taught.people} ${taught.people===1?"person":"people"} on ${taught.n} machine${taught.n===1?"":"s"}.`
+        :`Nothing recorded yet. When someone ticks a machine off on the Training tab, whoever's name is in the "trained by" box gets the credit — and it shows up here.`}</p>
+      ${groups.map(g=>`<div class="trow">
+        <span class="mname">${esc(g.name)}</span>
+        <span></span>
+        <span style="font-size:12.5px;color:var(--mute);grid-column:span 2">${g.items.map(i=>esc(i.machine)).join(", ")}</span>
+        <span class="ago">${g.items[0].date?agoText(g.items.map(i=>i.date).sort().reverse()[0]):""}</span>
+      </div>`).join("")}</div>`;
+  }
+
+  if(ppTab==="schedule"){
+    const [y,m]=ppMonth.split("-").map(Number);
+    const first=new Date(y,m-1,1).getDay(), last=new Date(y,m,0).getDate();
+    let cells=DN.map((d,i)=>`<div class="dowl">${DF[i].slice(0,3)}</div>`).join("");
+    for(let i=0;i<first;i++) cells+=`<div class="cell blank"></div>`;
+    for(let dd=1;dd<=last;dd++){
+      const k=`${y}-${pad(m)}-${pad(dd)}`, on=worksOn(p,k);
+      cells+=`<div class="cell ${k===todayKey()?"today":""}"><button class="tod" data-pk="${k}"
+        data-st="${on?"booked":"free"}" ${p.crew?"disabled":""}
+        title="${p.crew?crewLabel(p.crew)+" — change their crew below to set days by hand":on?"Working — click to take it off":"Off — click to make it a work day"}">${dd}</button></div>`;
+    }
+    const usingCustom=!!(p.custom&&Object.keys(p.custom).length);
+    body=`<div class="card"><h4>Schedule</h4>
+      <p class="help">${p.crew
+        ? `On ${esc(crewLabel(p.crew))}, so their days come from the crew schedule. Set them to "No crew" below to give them their own calendar.`
+        : usingCustom ? `Working off their own calendar — click any day to change it. Handy for the people whose month is never the same twice.`
+        : `Using the weekday buttons below. Click days on the calendar to switch them to their own month-by-month schedule instead.`}</p>
+      <div class="rowline">
+        <select id="ppCrew"><option value="">No crew — set days by hand</option>
+          ${CREWS.map(c=>`<option value="${c}" ${p.crew===c?"selected":""}>${crewLabel(c)}</option>`).join("")}</select>
+        <select id="ppHours"><option value="8" ${p.hours!==5?"selected":""}>8 hr</option>
+          <option value="5" ${p.hours===5?"selected":""}>5 hr (half shift)</option></select>
+        ${!p.crew?`<div class="dayrow">${DN.map((n,i)=>
+          `<button data-ppd="${i}" data-on="${(p.days||[]).includes(i)?1:0}" title="${DF[i]}">${n}</button>`).join("")}</div>`:""}
+      </div>
+      <div class="rowline" style="margin:10px 0 6px"><button class="icb" id="ppPrev">‹</button>
+        <span class="eyebrow" style="min-width:120px;text-align:center">${MN[m-1]} ${y}</span>
+        <button class="icb" id="ppNext">›</button>
+        ${usingCustom?`<button class="btn" id="ppClearCustom" style="margin-left:12px">Back to weekday buttons</button>`:""}</div>
+      <div class="calgrid">${cells}</div></div>`;
+  }
+
+  if(ppTab==="history"){
+    const out=[];
+    Object.keys(state.days).sort().reverse().forEach(k=>{
+      const d=state.days[k], a=(d.away||{})[k]||null;
+      ["talons","ridge"].forEach(c=>state.jobs[c].forEach(j=>
+        (d[c].assign[j.id]||[]).forEach(sl=>{ if(sl&&sl.p===p.id)
+          out.push({k,c:c==="talons"?"Talons":"Ridge",job:j.label,note:sl.note||"",note2:sl.note2||"",pm:sl.pm||"",
+            flags:[(d.late||{})[p.id]?"late":"",(d.early||{})[p.id]?"left early":""].filter(Boolean).join(", ")}); })));
+      const aw=(d.away||{})[p.id];
+      if(aw) out.push({k,c:"—",job:aw.type==="noshow"?"No show":aw.type==="timeoff"?"Time off":aw.type==="covered"?"Shift covered":"Called in",
+        note:"",note2:"",pm:"",away:true,flags:""});
+    });
+    body=`<div class="card"><h4>Day by day</h4>
+      ${out.length?`<table class="log"><thead><tr><th>Date</th><th>Course</th><th>Job</th><th>First job</th>
+        <th>Second job</th><th>PM job</th><th></th></tr></thead><tbody>
+        ${out.slice(0,140).map(r=>`<tr><td>${r.k}</td><td>${esc(r.c)}</td>
+          <td${r.away?' style="color:var(--out)"':""}>${esc(r.job)}</td><td>${esc(r.note)}</td>
+          <td style="color:var(--sand)">${esc(r.note2)}</td><td style="color:var(--pm)">${esc(r.pm)}</td>
+          <td style="color:var(--sand);font-size:11px">${esc(r.flags)}</td></tr>`).join("")}</tbody></table>
+        ${out.length>140?`<p class="help" style="margin:8px 0 0">Showing the last 140 entries.</p>`:""}`
+        :`<p class="help" style="margin:0">Nothing on record yet.</p>`}</div>`;
+  }
+
+  el.innerHTML=`<h3>People</h3>
+    <div class="rowline"><button class="btn" id="ppBack">‹ All people</button>
+      <input type="text" id="ppQ" placeholder="Jump to someone else…" style="width:220px" value="${esc(ppQ)}"></div>
+    ${ppQ?`<div class="names" style="margin-bottom:10px">${hits.length?hits.map(x=>
+      `<button class="chipn" data-pp="${x.id}">${esc(x.name)}</button>`).join(""):`<span class="empty-note">No names match.</span>`}</div>`:""}
+    <div class="card">
+      <div class="phead"><h4>${esc(p.name)}</h4>
+        <span class="meta">${esc(scheduleWord(p))} · ${p.hours===5?"5 hr":"8 hr"} · ${trained.length}/${state.machines.length} machines</span></div>
+      <div class="statgrid">
+        <div class="stat"><b>${s.days}</b><s>Days worked</s></div>
+        <div class="stat ${s.late?"gold":""}"><b>${s.late}</b><s>Late</s></div>
+        <div class="stat ${s.early?"gold":""}"><b>${s.early}</b><s>Left early</s></div>
+        <div class="stat ${s.call?"warn":""}"><b>${s.call}</b><s>Called in</s></div>
+        <div class="stat ${s.no?"warn":""}"><b>${s.no}</b><s>No shows</s></div>
+        <div class="stat"><b>${s.off}</b><s>Days off</s></div>
+        <div class="stat"><b>${s.cover}</b><s>Covered</s></div>
+        <div class="stat"><b>${taught.people}</b><s>People trained</s></div>
+      </div>
+      <div class="subtabs">
+        ${[["training","Training"],["taught","Trained others"],["schedule","Schedule"],["history","Day by day"]].map(([k,l])=>
+          `<button data-ptab="${k}" aria-pressed="${ppTab===k}">${l}</button>`).join("")}
+      </div>
+    </div>
+    ${body}`;
+
+  const q=el.querySelector("#ppQ");
+  q.oninput=()=>{ const c=q.selectionStart; ppQ=q.value; renderPeople(); refocus("#ppQ",c); };
+  el.querySelector("#ppBack").onclick=()=>{ ppPerson=""; ppQ=""; renderPeople(); };
+  el.querySelectorAll("[data-pp]").forEach(b=>b.onclick=()=>{ ppPerson=b.dataset.pp; ppQ=""; renderPeople(); });
+  el.querySelectorAll("[data-ptab]").forEach(b=>b.onclick=()=>{ ppTab=b.dataset.ptab; renderPeople(); });
+
+  el.querySelectorAll("[data-tt]").forEach(cb=>cb.onchange=()=>{
+    setTrained(p.id,cb.dataset.tt,cb.checked); state.trainingIsSample=false; save();
+    if(cb.checked) askSignoff(p.id,cb.dataset.tt,()=>renderPeople()); else renderPeople(); });
+  el.querySelectorAll("[data-td]").forEach(i=>i.onchange=()=>{
+    setTrained(p.id,i.dataset.td,true,{date:i.value}); save(); renderPeople(); });
+  el.querySelectorAll("[data-tb]").forEach(i=>i.oninput=()=>{
+    setTrained(p.id,i.dataset.tb,true,{by:i.value}); save(); });
+
+  const pc=el.querySelector("#ppCrew");
+  if(pc) pc.onchange=()=>{ p.crew=pc.value||null; save(); renderPeople(); updateHead(); };
+  const ph=el.querySelector("#ppHours");
+  if(ph) ph.onchange=()=>{ p.hours=+ph.value; save(); renderPeople(); };
+  el.querySelectorAll("[data-ppd]").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.ppd; p.days=p.days||[];
+    p.days=p.days.includes(i)?p.days.filter(x=>x!==i):p.days.concat(i).sort();
+    save(); renderPeople(); updateHead(); });
+  const pv=el.querySelector("#ppPrev"), nx=el.querySelector("#ppNext");
+  if(pv) pv.onclick=()=>{ ppMonth=shiftMonth(ppMonth,-1); renderPeople(); };
+  if(nx) nx.onclick=()=>{ ppMonth=shiftMonth(ppMonth,1); renderPeople(); };
+  const cc=el.querySelector("#ppClearCustom");
+  if(cc) cc.onclick=()=>{ delete p.custom; save(); renderPeople(); updateHead(); };
+  el.querySelectorAll("[data-pk]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.pk;
+    if(!p.custom||!Object.keys(p.custom).length){
+      /* first click switches them to their own calendar, seeded from the weekday pattern
+         so nothing silently disappears from the month they're looking at */
+      p.custom={}; const [yy,mm]=ppMonth.split("-").map(Number);
+      for(let dd=1;dd<=new Date(yy,mm,0).getDate();dd++){
+        const kk=`${yy}-${pad(mm)}-${pad(dd)}`;
+        if((p.days||[]).includes(dow(kk))) p.custom[kk]=1;
+      }
+    }
+    if(p.custom[k]) delete p.custom[k]; else p.custom[k]=1;
+    save(); renderPeople(); updateHead(); });
+}
+
 /* ══ history ══ */
 function renderHistory(){
   const el=document.getElementById("viewHistory");
@@ -1202,7 +1656,7 @@ function renderHistory(){
         (d[c].assign[j.id]||[]).forEach(s=>{ if(s&&s.p===p.id)
           out.push({k,c,job:j.label,note:s.note||"",note2:s.note2||"",pm:s.pm||""}); })));
       const a=(d.away||{})[p.id];
-      if(a) out.push({k,c:"—",job:a.type==="timeoff"?("Time off"+(a.by?" — covered by "+((person(a.by)||{}).name||""):""))
+      if(a) out.push({k,c:"—",job:a.type==="noshow"?"No show":a.type==="timeoff"?("Time off"+(a.by?" — covered by "+((person(a.by)||{}).name||""):""))
         :a.by?"Shift covered by "+((person(a.by)||{}).name||""):"Called in",note:"",note2:"",pm:"",away:true});
     });
     hist=out.length?`<table class="log"><thead><tr><th>Date</th><th>Course</th><th>Job</th><th>First job</th><th>Second job</th><th>PM job</th></tr></thead>
@@ -1215,19 +1669,23 @@ function renderHistory(){
 
   /* season stats — what the managers asked for: lates and call-ins per person */
   const stats={};
-  state.people.forEach(p=>stats[p.id]={days:0,call:0,late:0,cover:0,off:0});
+  state.people.forEach(p=>stats[p.id]={days:0,call:0,late:0,cover:0,off:0,no:0,early:0});
   Object.keys(state.days).forEach(k=>{
     const d=state.days[k];
     const worked=new Set();
     ["talons","ridge"].forEach(c=>Object.values(d[c].assign||{}).forEach(a=>a.forEach(sl=>{ if(sl&&sl.p) worked.add(sl.p); })));
     worked.forEach(id=>{ if(stats[id]) stats[id].days++; });
     Object.entries(d.away||{}).forEach(([id,a])=>{ if(!stats[id]) return;
-      if(a.type==="timeoff") stats[id].off++; else if(a.by) stats[id].cover++; else stats[id].call++; });
+      if(a.type==="timeoff") stats[id].off++; else if(a.type==="noshow") stats[id].no++;
+      else if(a.by) stats[id].cover++; else stats[id].call++; });
     Object.keys(d.late||{}).forEach(id=>{ if(stats[id]) stats[id].late++; });
+    new Set([...Object.keys(d.early||{}),...Object.keys(d.half||{})]).forEach(id=>{ if(stats[id]) stats[id].early++; });
   });
   const sorted=state.people.slice().sort((a,b)=>{
     const A=stats[a.id],B=stats[b.id];
     if(statSort==="late"&&B.late!==A.late) return B.late-A.late;
+    if(statSort==="no"&&B.no!==A.no) return B.no-A.no;
+    if(statSort==="early"&&B.early!==A.early) return B.early-A.early;
     if(statSort==="call"&&B.call!==A.call) return B.call-A.call;
     if(statSort==="days"&&B.days!==A.days) return B.days-A.days;
     return byName(a,b); });
@@ -1236,7 +1694,9 @@ function renderHistory(){
       <td style="font-family:var(--mono);color:var(--mute)">${x.crew?esc(x.crew):"—"}</td>
       <td>${st.days}</td>
       <td${st.late?' style="color:var(--sand)"':""}>${st.late||"—"}</td>
+      <td${st.early?' style="color:var(--sand)"':""}>${st.early||"—"}</td>
       <td${st.call?' style="color:var(--out)"':""}>${st.call||"—"}</td>
+      <td${st.no?' style="color:var(--out);font-weight:600"':""}>${st.no||"—"}</td>
       <td>${st.cover||"—"}</td>
       <td${st.off?' style="color:var(--pm)"':""}>${st.off||"—"}</td></tr>`; }).join("");
   const pstat=logPerson&&stats[logPerson]?stats[logPerson]:null;
@@ -1252,17 +1712,19 @@ function renderHistory(){
       ${logQ?`<div class="names" style="margin-bottom:12px">${hits.length?hits.map(x=>
         `<button class="chipn" data-lp="${x.id}">${esc(x.name)}${x.crew?`<em>C${x.crew}</em>`:""}</button>`).join("")
         :`<span class="empty-note">No names match.</span>`}</div>`:""}
-      ${p&&pstat?`<p class="help" style="margin:0 0 10px">This season: on the board ${pstat.days} day${pstat.days===1?"":"s"}${pstat.late?`, <b style="color:var(--sand)">late ${pstat.late}×</b>`:""}${pstat.call?`, <b style="color:var(--out)">called in ${pstat.call}×</b>`:""}${pstat.cover?`, shift covered ${pstat.cover}×`:""}${pstat.off?`, time off ${pstat.off} day${pstat.off===1?"":"s"}`:""}.</p>`:""}
+      ${p&&pstat?`<p class="help" style="margin:0 0 10px">This season: on the board ${pstat.days} day${pstat.days===1?"":"s"}${pstat.late?`, <b style="color:var(--sand)">late ${pstat.late}×</b>`:""}${pstat.call?`, <b style="color:var(--out)">called in ${pstat.call}×</b>`:""}${pstat.no?`, <b style="color:var(--out)">no show ${pstat.no}×</b>`:""}${pstat.early?`, left early ${pstat.early}×`:""}${pstat.cover?`, shift covered ${pstat.cover}×`:""}${pstat.off?`, time off ${pstat.off} day${pstat.off===1?"":"s"}`:""}.</p>`:""}
       ${p?hist:logQ?"":`<p class="help" style="margin:0">Type a name to see every job they've been on.</p>`}</div>
     <div class="card"><h4>Season stats</h4>
       <p class="help">Days on the board, lates, and call-ins for everyone, all season.</p>
       <div class="rowline"><select id="statSort">
         <option value="name" ${statSort==="name"?"selected":""}>Sort by name</option>
         <option value="late" ${statSort==="late"?"selected":""}>Most late</option>
+        <option value="no" ${statSort==="no"?"selected":""}>Most no shows</option>
+        <option value="early" ${statSort==="early"?"selected":""}>Most left early</option>
         <option value="call" ${statSort==="call"?"selected":""}>Most call-ins</option>
         <option value="days" ${statSort==="days"?"selected":""}>Most days worked</option></select></div>
-      <table class="log"><thead><tr><th>Person</th><th>Crew</th><th>Days worked</th><th>Late</th>
-        <th>Called in</th><th>Covered</th><th>Time off</th></tr></thead><tbody>${statRows}</tbody></table></div>
+      <table class="log"><thead><tr><th>Person</th><th>Crew</th><th>Days worked</th><th>Late</th><th>Left early</th>
+        <th>Called in</th><th>No show</th><th>Covered</th><th>Time off</th></tr></thead><tbody>${statRows}</tbody></table></div>
     <div class="card"><h4>Days on record</h4>
       ${keys.length?`<table class="log"><thead><tr><th>Date</th><th>Day</th><th>Crews</th><th>In</th>
         <th>Jobs filled</th><th>Away</th><th>Supervisors</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
@@ -1294,7 +1756,9 @@ function renderTraining(){
   const el=document.getElementById("viewTraining");
   const tlist=state.people.slice().sort(byName).filter(p=>matches(p.name,trainQ)&&crewMatch(p,trainCrew));
   el.innerHTML=`<h3>Training sheet</h3>
-    <p class="help">Every dropdown on the board checks this list. Tick the box the day someone gets signed off.</p>
+    <p class="help">Every dropdown on the board checks this list. Tick the box the day someone gets signed off —
+      it records the date and your name. For one person's full history, who trained them and how long ago,
+      open them on the People tab.</p>
     <div class="card"><h4>Import</h4>
       <p class="help">Names down column A, machines across row 1, Y or N in the cells. Matching names keep
         their crew and hours, new names get added at the bottom.</p>
@@ -1319,8 +1783,9 @@ function renderTraining(){
       </tr>`).join(""):`<tr><td class="name" style="color:var(--dim)">Nobody matches.</td><td colspan="${state.machines.length+2}"></td></tr>`}</tbody></table></div>`;
   el.querySelectorAll("[data-t]").forEach(cb=>cb.onchange=()=>{
     const [pid,m]=cb.dataset.t.split("|");
-    state.training[pid]=state.training[pid]||{}; state.training[pid][m]=cb.checked;
+    setTrained(pid,m,cb.checked);
     state.trainingIsSample=false; save();
+    if(cb.checked) askSignoff(pid,m,()=>renderTraining());
     const cell=el.querySelector(`[data-cnt="${pid}"]`);
     if(cell) cell.textContent=state.machines.filter(x=>isTrained(pid,x)).length+"/"+state.machines.length; });
   el.querySelector("#trQ").oninput=e=>{ const c=e.target.selectionStart; trainQ=e.target.value; renderTraining(); refocus("#trQ",c); };
@@ -1392,26 +1857,68 @@ async function importSheet(){
 }
 /* crew list import — reads columns headed Crew 1/2/3, or two columns: name then crew */
 function applyCrewRows(rows){
-  const head=(rows[0]||[]).map(h=>String(h||"").trim());
-  const crewOf=h=>{ const m=String(h||"").match(/([123])/); return m?m[1]:null; };
-  const headCrews=head.map(crewOf);
-  const pairs=[];
-  if(headCrews.filter(Boolean).length>=2){
-    rows.slice(1).forEach(r=>r.forEach((cell,i)=>{ const nm=String(cell||"").trim();
-      if(nm&&headCrews[i]) pairs.push({name:nm,crew:headCrews[i]}); }));
-  } else {
-    rows.forEach(r=>{ const nm=String(r[0]||"").trim(); if(!nm) return;
-      if(/^name/i.test(nm)) return;
-      pairs.push({name:nm,crew:crewOf(r[1])}); });
+  /* Real sheets come in every shape. Handle: columns headed Crew 1/2/3, a name
+     column plus a crew column, a plain list of names, title rows above the
+     headers, extra columns, and crew written as "1", "Crew 1", "C1" or "Mon-Fri". */
+  const clean=v=>String(v??"").replace(/\s+/g," ").trim();
+  const crewFrom=v=>{ const t=clean(v).toLowerCase(); if(!t) return null;
+    if(/(^|[^a-z])(m-?f|mon\s*-?\s*fri|monday\s*-?\s*friday|weekday)/.test(t)) return "MF";
+    const m=t.match(/([123])/); return m?m[1]:null; };
+  const hoursFrom=v=>{ const t=clean(v).toLowerCase(); if(!t) return null;
+    if(/^5|half|1\/2|\bhalf\b/.test(t)) return 5; if(/^8|full/.test(t)) return 8; return null; };
+  const looksLikeName=v=>{ const t=clean(v);
+    return !!t && /[a-z]/i.test(t) && !/^(name|crew|employee|staff|full name|hours|shift|position|notes?)\b/i.test(t)
+      && !crewFrom(t) && t.length<60; };
+
+  const grid=rows.map(r=>Array.isArray(r)?r.map(clean):[clean(r)]);
+  const pairs=[]; let mode="";
+
+  /* shape A — a row whose cells are mostly crew headings */
+  let headIdx=-1;
+  grid.forEach((r,i)=>{ if(headIdx>=0) return;
+    const crewCells=r.filter(c=>c&&crewFrom(c)&&/crew|m-?f|mon/i.test(c)).length;
+    if(crewCells>=2) headIdx=i; });
+  if(headIdx>=0){
+    mode="columns";
+    const map=grid[headIdx].map(c=>crewFrom(c));
+    grid.slice(headIdx+1).forEach(r=>r.forEach((cell,i)=>{
+      if(looksLikeName(cell)&&map[i]) pairs.push({name:cell,crew:map[i],hours:null}); }));
   }
-  if(!pairs.length) return "Couldn't find names in that file. Use columns headed Crew 1 / Crew 2 / Crew 3, or two columns: name then crew.";
-  let matched=0,added=0;
-  const seen=new Set();
-  pairs.forEach(({name,crew})=>{
+
+  /* shape B — a name column, optionally with crew and hours columns beside it */
+  if(!pairs.length){
+    let hdr=-1, nameCol=0, crewCol=-1, hoursCol=-1;
+    grid.forEach((r,i)=>{ if(hdr>=0) return;
+      const idxName=r.findIndex(c=>/^(name|full name|employee|staff)\b/i.test(c));
+      const idxCrew=r.findIndex(c=>/^crew\b/i.test(c));
+      if(idxName>=0||idxCrew>=0){ hdr=i;
+        if(idxName>=0) nameCol=idxName;
+        crewCol=idxCrew;
+        hoursCol=r.findIndex(c=>/^(hours|hrs|shift)\b/i.test(c)); } });
+    const body=hdr>=0?grid.slice(hdr+1):grid;
+    body.forEach(r=>{
+      const nm=r[nameCol]!==undefined&&looksLikeName(r[nameCol])?r[nameCol]:(r.find(looksLikeName)||"");
+      if(!nm) return;
+      let crew=crewCol>=0?crewFrom(r[crewCol]):null;
+      if(!crew&&crewCol<0){ for(let i=0;i<r.length;i++){ if(r[i]===nm) continue;
+        const c=crewFrom(r[i]); if(c){ crew=c; break; } } }
+      const hrs=hoursCol>=0?hoursFrom(r[hoursCol]):null;
+      pairs.push({name:nm,crew,hours:hrs});
+    });
+    mode=mode||"rows";
+  }
+
+  if(!pairs.length) return "Couldn't find any names in that file. A single column of names works, "
+    +"or add a Crew column beside it, or columns headed Crew 1 / Crew 2 / Crew 3.";
+
+  let matched=0,added=0; const seen=new Set(); const dupes=new Set();
+  pairs.forEach(({name,crew,hours})=>{
     let p=state.people.find(x=>norm(x.name)===norm(name));
-    if(p){ matched++; if(crew) p.crew=crew; }
-    else { p={id:uid(),name,crew:crew||null,days:[1,2,3,4,5],hours:8};
-      state.training[p.id]={}; state.machines.forEach(m=>state.training[p.id][m]=(state.basics||[]).includes(m));
+    if(p){ if(seen.has(p.id)) dupes.add(p.name); else matched++;
+      if(crew) p.crew=crew; if(hours) p.hours=hours; }
+    else { p={id:uid(),name,crew:crew||null,days:[1,2,3,4,5],hours:hours||8};
+      state.training[p.id]={};
+      state.machines.forEach(m=>{ if((state.basics||[]).includes(m)) setTrained(p.id,m,true,{by:"",date:""}); });
       state.people.push(p); added++; }
     seen.add(p.id);
   });
@@ -1425,7 +1932,12 @@ function applyCrewRows(rows){
     removed=gone.length;
   }
   save();
-  return `Crew list read: ${matched} matched, ${added} added${removed?`, ${removed} removed`:""}.`;
+  const noCrew=state.people.filter(p=>!p.crew).length, dz=findDupes();
+  return `Crew list read: ${matched} matched, ${added} added${removed?`, ${removed} removed`:""}.`
+    +(dz.length?`\n\nHeads up — ${dz.length} name${dz.length===1?"":"s"} may already be on the board under a slightly different spelling `
+      +`(${dz.map(g=>g.map(p=>p.name).join(" / ")).join("; ")}). There's a box just below the crew list to sort that out.`:"")
+    +(noCrew?`\n${noCrew} ${noCrew===1?"person has":"people have"} no crew — set their days in Setup or on their profile.`:"")
+    +(dupes.size?`\n\nListed more than once, so only counted once: ${[...dupes].join(", ")}.`:"");
 }
 async function importCrew(){
   try{
@@ -1437,7 +1949,7 @@ const norm=s=>String(s).toLowerCase().replace(/[^a-z]/g,"");
 
 /* ══ setup ══ */
 function renderSetup(){
-  const el=document.getElementById("viewSetup"), crews=["1","2","3"];
+  const el=document.getElementById("viewSetup"), crews=CREWS;
   const plist=state.people.filter(p=>matches(p.name,setupQ)&&crewMatch(p,setupCrew));
   if(!calMonth) calMonth=dateKey.slice(0,7);
   el.innerHTML=`<h3>Setup</h3>
@@ -1474,7 +1986,7 @@ function renderSetup(){
       ${plist.length?plist.map(p=>`<div class="prow">
         <input type="text" data-pn="${p.id}" value="${esc(p.name)}">
         <select data-pc="${p.id}"><option value="">No crew</option>
-          ${crews.map(c=>`<option ${p.crew===c?"selected":""}>${c}</option>`).join("")}</select>
+          ${crews.map(c=>`<option value="${c}" ${p.crew===c?"selected":""}>${crewLabel(c)}</option>`).join("")}</select>
         <div class="dayrow ${p.crew?"off":""}">${DN.map((n,i)=>
           `<button data-pd="${p.id}|${i}" data-on="${(p.days||[]).includes(i)?1:0}" title="${DF[i]}">${n}</button>`).join("")}</div>
         <select data-ph="${p.id}"><option value="8" ${p.hours===8?"selected":""}>8 hr</option>
@@ -1483,6 +1995,14 @@ function renderSetup(){
         :`<p class="help" style="margin:2px 0 6px">Nobody matches.</p>`}
       <div class="rowline" style="margin-top:12px"><input type="text" id="newPerson" placeholder="Add someone…" style="width:216px">
         <button class="btn" id="addPerson">Add</button></div>
+      ${(()=>{ const dz=findDupes(); if(!dz.length) return "";
+        return `<div class="banner" style="margin-top:12px"><b>Possible duplicates.</b>
+          The same person may be on the list twice \u2014 usually two people importing their own copy.
+          Pick who to keep and everything from the other moves across.
+          ${dz.map((g,gi)=>`<div class="rowline" style="margin-top:8px">
+            ${g.map(p=>`<button class="btn" data-dupkeep="${p.id}|${gi}">Keep ${esc(p.name)}${p.crew?" ("+esc(crewLabel(p.crew))+")":""}</button>`).join("")}
+            <button class="btn" data-dupno="${gi}">Different people</button></div>`).join("")}</div>`;
+      })()}
       <div class="rowline" style="margin-top:8px"><input type="file" id="crewFile" accept=".xlsx,.xls,.csv">
         <button class="btn" id="crewImport">Import crew list</button></div>
       <p class="help" style="margin:6px 0 0">Reads columns headed Crew 1 / 2 / 3, or two columns: name then crew.
@@ -1552,6 +2072,16 @@ function renderSetup(){
     state.people=state.people.filter(p=>p.id!==b.dataset.px); save(); renderSetup(); updateHead(); });
   q("#plQ").oninput=e=>{ const c=e.target.selectionStart; setupQ=e.target.value; renderSetup(); refocus("#plQ",c); };
   q("#plCrew").onchange=e=>{ setupCrew=e.target.value; renderSetup(); };
+  const dz=findDupes();
+  el.querySelectorAll("[data-dupkeep]").forEach(b=>b.onclick=()=>{
+    const [keepId,gi]=b.dataset.dupkeep.split("|");
+    const grp=dz[+gi]||[], others=grp.filter(p=>p.id!==keepId);
+    if(!confirm(`Merge into ${(person(keepId)||{}).name}?\n\n${others.map(p=>p.name).join(", ")} `+
+      `${others.length===1?"gets":"get"} folded in \u2014 training and every day they're on move across, all under the one name.`)) return;
+    others.forEach(p=>mergePeople(keepId,p.id));
+    renderSetup(); updateHead(); });
+  el.querySelectorAll("[data-dupno]").forEach(b=>b.onclick=()=>{
+    (dz[+b.dataset.dupno]||[]).forEach(p=>{ p.dupOk=true; }); save(); renderSetup(); });
   q("#crewImport").onclick=importCrew;
   onEnter(q("#newPerson"),q("#addPerson"));
   q("#addPerson").onclick=()=>{
@@ -1598,7 +2128,7 @@ function renderSetup(){
     const url=q("#syncUrl").value.trim(), key=q("#syncKey").value.trim(), who=q("#syncWho").value.trim();
     if(!url||!key){ alert("Both the project URL and the key are needed."); return; }
     if(!who){ alert("Add your name so the other managers can see who changed what."); return; }
-    state.sync={url,key,who}; save(); startSync(); renderSetup();
+    state.sync={url,key,who}; save(); renderSetup(); firstConnect();
   };
   const so=q("#syncOff");
   if(so) so.onclick=()=>{
@@ -1685,7 +2215,9 @@ function jobOf(k){ const [c,id]=k.split("|"); return state.jobs[c].find(j=>j.id=
 const CFG_KEYS=["machines","people","supervisors","training","trainingIsSample","schedule","times","jobs"];
 let lastSent={}, lastPull="1970-01-01T00:00:00Z", syncState="off", syncSeen=null, pullTimer=null, applyQueued=false;
 /* have we actually checked the shared board yet, and did it hold a real roster? */
-let pulledOnce=false, serverHasRoster=false;
+let pulledOnce=false, serverHasRoster=false, skipNextConfig=false;
+/* set while a device is joining, so its first pull can protect local work */
+let joining=false, keepSups=null, replacedDays=[];
 
 const syncOn=()=>!!(state&&state.sync&&state.sync.url&&state.sync.key);
 const configPart=()=>Object.fromEntries(CFG_KEYS.map(k=>[k,state[k]]));
@@ -1718,8 +2250,12 @@ async function pushDirty(){
   if((state.people.length||(pulledOnce&&!serverHasRoster))&&lastSent.config!==cfg)
     recs.push({id:"config",data:JSON.parse(cfg),updated_by:who});
   Object.keys(state.days).forEach(k=>{
-    const str=JSON.stringify(state.days[k]);
-    if(lastSent["day:"+k]!==str) recs.push({id:"day:"+k,data:state.days[k],updated_by:who});
+    const d=state.days[k];
+    /* opening the board creates a blank record for that date — don't share those,
+       an empty day landing on someone else's screen would wipe their work */
+    if(!hasContent(d)&&lastSent["day:"+k]===undefined) return;
+    const str=JSON.stringify(d);
+    if(lastSent["day:"+k]!==str) recs.push({id:"day:"+k,data:d,updated_by:who});
   });
   if(!recs.length) return;
   try{
@@ -1745,17 +2281,106 @@ async function pullChanges(){
       if(row.id==="config"){
         const inc=row.data;
         if(inc.people&&inc.people.length) serverHasRoster=true;
+        if(skipNextConfig){ skipNextConfig=false; return; }
         if((!inc.people||!inc.people.length)&&state.people.length){ delete inc.people; delete inc.training; }
+        /* a computer that's been set up offline keeps the supervisors it typed in */
+        if(joining&&keepSups&&keepSups.length&&inc.supervisors)
+          inc.supervisors=inc.supervisors.concat(keepSups.filter(x=>!inc.supervisors.includes(x)));
         Object.assign(state,inc);
       }
-      else if(row.id.startsWith("day:")){ state.days[row.id.slice(4)]=row.data; }
+      else if(row.id.startsWith("day:")){
+        const k=row.id.slice(4), mine=state.days[k];
+        if(joining&&mine&&hasContent(mine)){
+          if(!hasContent(row.data)) return;                 // blank from elsewhere never wins
+          if(JSON.stringify(mine)!==str) replacedDays.push(k);
+        }
+        state.days[k]=row.data;
+      }
       lastSent[row.id]=str; changed=true;
     });
     if(changed){
       store.set("chgc-board",JSON.stringify(state));
       if(editing()) applyQueued=true; else refresh();   // never yank a field mid-type
     } else if(applyQueued&&!editing()){ applyQueued=false; refresh(); }
+    if(joining){
+      joining=false; keepSups=null;
+      if(replacedDays.length){
+        const list=replacedDays.slice(0,6).join(", ")+(replacedDays.length>6?"…":"");
+        replacedDays=[];
+        alert(`Now sharing with the other computers.\n\nThese days were already built on the shared board, `+
+          `so everyone's version is what you'll see here: ${list}.\n\nEverything else you'd set up is kept.`);
+      }
+    }
   }catch(e){ setSync("error"); }
+}
+/* Connecting a computer that's already had work done on it is the one moment two
+   real setups can collide. Ask instead of guessing. */
+const rosterNames=list=>(list||[]).map(p=>norm(p.name)).sort().join("|");
+async function firstConnect(){
+  if(!syncOn()){ startSync(); return; }
+  let srv=null;
+  try{
+    const r=await fetch(api("board?select=id,data&id=eq.config"),{headers:heads()});
+    if(r.ok){ const rows=await r.json(); srv=rows[0]&&rows[0].data; }
+  }catch(e){}
+  const srvPeople=(srv&&srv.people)||[];
+  const mine=state.people||[];
+  joining=true; keepSups=(state.supervisors||[]).slice(); replacedDays=[];
+  if(!srvPeople.length||!mine.length||rosterNames(srvPeople)===rosterNames(mine)){ startSync(); return; }
+  askMerge(srv);
+}
+function mergeConfigs(srv){
+  /* union of both sides: nobody disappears, and a machine someone is signed off
+     on in either place stays signed off */
+  const byName={}; const out=[];
+  const take=(p,src)=>{ const k=norm(p.name);
+    if(byName[k]){ const ex=byName[k];
+      ex.crew=ex.crew||p.crew; ex.hours=(ex.hours===5||p.hours===5)?5:8;
+      if(p.custom) ex.custom=Object.assign({},p.custom,ex.custom);
+      return ex; }
+    const copy=Object.assign({},p); byName[k]=copy; out.push(copy); return copy; };
+  const trainMerged={};
+  const pull=(list,training)=>{ (list||[]).forEach(p=>{
+    const t=take(p); const src=(training||{})[p.id]||{};
+    const dest=trainMerged[t.id]=trainMerged[t.id]||{};
+    Object.keys(src).forEach(m=>{
+      const v=src[m], on=(typeof v==="object")?!!v.on:!!v;
+      const cur=dest[m], curOn=cur?((typeof cur==="object")?!!cur.on:!!cur):false;
+      if(on&&!curOn) dest[m]=v; else if(!cur) dest[m]=v;
+    }); }); };
+  pull(mine=state.people,state.training);
+  pull(srv.people,srv.training);
+  const machines=state.machines.slice();
+  (srv.machines||[]).forEach(m=>{ if(!machines.includes(m)) machines.push(m); });
+  const sups=(state.supervisors||[]).slice();
+  (srv.supervisors||[]).forEach(s=>{ if(!sups.includes(s)) sups.push(s); });
+  state.people=out; state.training=trainMerged; state.machines=machines; state.supervisors=sups;
+  state.schedule=Object.assign({},srv.schedule||{},state.schedule||{});
+  state.trainingIsSample=false;
+}
+function askMerge(srv){
+  const mineN=state.people.length, srvN=(srv.people||[]).length;
+  const root=document.getElementById("modalRoot");
+  root.innerHTML=`<div class="veil" id="veil"><div class="modal">
+    <h5>This computer already has a board set up</h5>
+    <p class="sub">There are ${mineN} ${mineN===1?"person":"people"} set up here, and ${srvN} on the shared board.
+      Nothing has been changed yet — pick what to do.</p>
+    <button class="opt" id="mgMerge"><b>Keep both (recommended)</b><span>Everyone from here and everyone from the shared board.
+      Anything either side has signed off stays signed off.</span></button>
+    <button class="opt" id="mgMine"><b>Use this computer's version</b><span>What's set up here becomes the shared board for everyone.</span></button>
+    <button class="opt" id="mgTheirs"><b>Use the shared board's version</b><span>This computer takes what everyone else already has.
+      The setup done here is replaced.</span></button>
+    <p class="sub" style="margin-top:12px">Any days already built on this computer are kept either way.</p>
+    <div class="foot"><button class="btn" id="mgCancel">Not now</button></div>
+  </div></div>`;
+  const close=()=>root.innerHTML="";
+  document.getElementById("mgCancel").onclick=()=>{ state.sync=null; save(); close(); renderSetup(); };
+  document.getElementById("mgTheirs").onclick=()=>{ close(); startSync(); refresh(); };
+  document.getElementById("mgMine").onclick=()=>{ skipNextConfig=true; close(); startSync(); refresh(); };
+  document.getElementById("mgMerge").onclick=()=>{
+    mergeConfigs(srv); save(); skipNextConfig=true; close(); startSync(); refresh();
+    alert(`Merged — ${state.people.length} people on the board now. Everything is on the shared board for the others.`);
+  };
 }
 function startSync(){
   clearInterval(pullTimer);
@@ -1771,6 +2396,25 @@ function updateHead(){
   document.getElementById("crewToggles").innerHTML=["1","2","3"].map(c=>
     `<button class="crewbtn" data-crew="${c}" data-on="${on.includes(c)?1:0}"
       title="Crew ${c} ${on.includes(c)?"is in":"is off"} — click to change this day">CREW ${c}</button>`).join("");
+  /* the crew schedule is imported and eventually runs out — say so plainly
+     instead of just showing an empty board */
+  const sw=document.getElementById("schedWarn");
+  if(sw){
+    const keys=Object.keys(state.schedule||{}).sort();
+    const lastK=keys[keys.length-1];
+    const crewFolk=state.people.some(p=>p.crew&&p.crew!=="MF");
+    if(crewFolk&&lastK&&dateKey>lastK){
+      sw.hidden=false;
+      sw.innerHTML=`<b>The crew schedule runs out after ${esc(lastK)}.</b> Crews 1\u20133 show as off from here on,
+        so this board looks empty. Import the new schedule in Setup, or click the crew numbers on the
+        calendar there to fill it in. Mon\u2013Fri people and anyone on their own calendar are unaffected.`;
+    } else if(crewFolk&&lastK&&dateKey<=lastK
+              &&(new Date(lastK+"T00:00:00")-new Date(dateKey+"T00:00:00"))/86400000<=14){
+      sw.hidden=false;
+      sw.innerHTML=`<b>Heads up \u2014 the crew schedule ends ${esc(lastK)}.</b> Worth importing the next one in
+        Setup before then so the boards keep filling themselves in.`;
+    } else sw.hidden=true;
+  }
   const five=roster.filter(p=>p.hours===5).length, offc=roster.filter(p=>!p.crew).length;
   const away=Object.entries(d.away||{}), called=away.filter(([,a])=>!a.by).length, cov=away.length-called;
   document.getElementById("headcount").innerHTML=
@@ -1816,11 +2460,13 @@ function refresh(){
   document.getElementById("viewBoard").hidden=view!=="board";
   document.getElementById("viewHistory").hidden=view!=="history";
   document.getElementById("viewTraining").hidden=view!=="training";
+  document.getElementById("viewPeople").hidden=view!=="people";
   document.getElementById("viewTimeoff").hidden=view!=="timeoff";
   document.getElementById("viewSetup").hidden=view!=="setup";
   if(view==="board"){ renderBoard(); renderRibbon(); }
   if(view==="history") renderHistory();
   if(view==="training") renderTraining();
+  if(view==="people") renderPeople();
   if(view==="timeoff") renderTimeoff();
   if(view==="setup") renderSetup();
 }
