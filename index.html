@@ -658,10 +658,11 @@ const isTrained=(pid,m)=>{ if(!m) return true; const r=trainRec(pid,m); return !
 const setTrained=(pid,m,on,extra)=>{
   state.training[pid]=state.training[pid]||{};
   const old=trainRec(pid,m)||{on:false,date:"",by:""};
-  const who=((state.sync||{}).who||"").trim();
+  /* the trainer is whoever actually did it — never assumed to be the person
+     sitting at this computer, since any of the crew might have trained them */
   state.training[pid][m]= on
     ? {on:true, date:(extra&&extra.date!==undefined)?extra.date:(old.date||todayKey()),
-       by:(extra&&extra.by!==undefined)?extra.by:(old.by||who)}
+       by:(extra&&extra.by!==undefined)?extra.by:(old.by||"")}
     : {on:false, date:(extra&&extra.date!==undefined)?extra.date:(old.date||""),
        by:(extra&&extra.by!==undefined)?extra.by:(old.by||"")};
 };
@@ -1310,6 +1311,15 @@ function mergePeople(keepId,dropId){
 }
 
 /* Ticking someone off on a machine — offer the detail, never demand it. */
+/* Anyone can do the training — the whole crew plus the supervisors — so the box
+   suggests names as you type but still accepts anything typed in full. */
+function trainerNames(exceptId){
+  const names=state.people.filter(p=>p.id!==exceptId).map(p=>p.name).concat(state.supervisors||[]);
+  return [...new Set(names.filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+const trainerList=(id,exceptId)=>`<datalist id="${id}">${
+  trainerNames(exceptId).map(n=>`<option value="${esc(n)}"></option>`).join("")}</datalist>`;
+
 function askSignoff(pid,m,after){
   const p=person(pid); if(!p) return;
   const rec=trainRec(pid,m)||{date:todayKey(),by:""};
@@ -1318,8 +1328,11 @@ function askSignoff(pid,m,after){
   root.innerHTML=`<div class="veil" id="veil"><div class="modal">
     <h5>${esc(p.name)} \u2014 ${esc(m)}</h5>
     <p class="sub">Signed off. Add who trained them and when, or skip it \u2014 either way it's recorded.</p>
+    ${trainerList("dlTrainers",pid)}
     <div class="rowline"><label class="cutf" style="flex:1"><s>Trained by</s>
-      <input type="text" id="sfBy" value="${esc(rec.by||who)}" placeholder="who signed them off"></label></div>
+      <input type="text" id="sfBy" list="dlTrainers" autocomplete="off" value="${esc(rec.by||"")}"
+        placeholder="start typing a name\u2026"></label></div>
+    ${who?`<div class="rowline" style="margin-top:-4px"><button class="btn" id="sfMe">That was me \u2014 ${esc(who)}</button></div>`:""}
     <div class="rowline"><label class="cutf" style="flex:1"><s>When</s>
       <input type="date" id="sfDate" value="${esc(rec.date||todayKey())}"></label></div>
     <div class="foot"><button class="btn" id="sfSkip">Skip</button><button class="btn go" id="sfSave">Save</button></div>
@@ -1332,6 +1345,8 @@ function askSignoff(pid,m,after){
       date:document.getElementById("sfDate").value||todayKey()});
     save(); close();
   };
+  const me=document.getElementById("sfMe");
+  if(me) me.onclick=()=>{ const f2=document.getElementById("sfBy"); f2.value=who; f2.focus(); };
   const f=document.getElementById("sfBy"); if(f) f.focus();
 }
 
@@ -1478,11 +1493,11 @@ function renderPeople(){
         <span class="mname">${esc(m)}</span>
         <label class="chk" style="margin:0"><input type="checkbox" data-tt="${esc(m)}" ${r.on?"checked":""}> <span style="font-size:11px">signed off</span></label>
         ${r.on?`<input type="date" data-td="${esc(m)}" value="${esc(r.date||"")}" title="When they were signed off">
-              <input type="text" class="by" data-tb="${esc(m)}" value="${esc(r.by||"")}" placeholder="trained by…">
+              <input type="text" class="by" data-tb="${esc(m)}" list="dlTrainersP" autocomplete="off" value="${esc(r.by||"")}" placeholder="trained by…">
               <span class="ago ${stale?"stale":""}">${esc(ago)}</span>`
              :`<span></span><span></span><span class="never">NEVER</span>`}
       </div>`; }).join("");
-    body=`<div class="card"><h4>Training</h4>
+    body=`<div class="card">${trainerList("dlTrainersP",p.id)}<h4>Training</h4>
       <p class="help">${trained.length} of ${state.machines.length} machines. Tick one and it fills in today's date and
         your name automatically — change either if you're recording something from a while back.</p>
       ${state.machines.length?rows:`<p class="help" style="margin:0">No machines yet — import the training sheet or add them on the Training tab.</p>`}</div>`;
